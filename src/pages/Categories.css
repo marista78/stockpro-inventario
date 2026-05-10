@@ -1,0 +1,52 @@
+/* ── Categories ── */
+.cat-card { 
+  display: flex; 
+  align-items: center; 
+  gap: 16px; 
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.cat-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+}
+
+.cat-card-color { 
+  width: 54px; 
+  height: 54px; 
+  border-radius: 14px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.cat-icon { 
+  width: 38px; 
+  height: 38px; 
+  border-radius: 12px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.cat-card-info { flex: 1; min-width: 0; }
+.cat-card-name { font-size: 16px; font-weight: 700; color: var(--text); }
+.cat-card-count { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.cat-card-actions { display: flex; gap: 4px; }
+
+/* ── Color Picker ── */
+.color-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.color-option { width: 28px; height: 28px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: all var(--transition); }
+.color-option:hover { transform: scale(1.15); }
+.color-option.selected { border-color: #fff; box-shadow: 0 0 0 2px var(--border-light); }
+.color-preview { margin-top: 10px; }
+.cat-preview-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 13px; font-weight: 600; }

@@ -1,0 +1,566 @@
+import { useState, useMemo } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useInventory } from '../context/InventoryContext';
+import { useToast } from '../context/ToastContext';
+import { 
+  Plus, ArrowUpCircle, ArrowDownCircle, Search, X, Filter,
+  Layers, Package, Calendar, User, MessageSquare, 
+  ArrowRight, Info, History, ShieldCheck 
+} from 'lucide-react';
+import { format, subDays } from 'date-fns';
+import './StockMovements.css';
+
+const UNIT_ABBR = {
+  'Unidad': 'Und.', 'Unidades': 'Und.',
+  'Caja': 'Cja.', 'Cajas': 'Cja.',
+  'Paquete': 'Paq.', 'Paquetes': 'Paq.',
+  'Kg': 'Kg', 'Kilogramo': 'Kg', 'Kilogramos': 'Kg',
+  'Litro': 'Lt.', 'Litros': 'Lt.',
+  'Metro': 'Mt.', 'Metros': 'Mt.',
+};
+
+const abreviar = (unit) => UNIT_ABBR[unit] || unit;
+
+function MovementModal({ products, suppliers, onSave, onDelete, onClose, editData }) {
+  const { user, users } = useAuth();
+  const isEditing = !!editData;
+  const [selectedBaseProduct, setSelectedBaseProduct] = useState(isEditing ? products.find(p => p.id === editData.productId) : null);
+  const [form, setForm] = useState(editData ? {
+    ...editData,
+    loteMode: 'existing',
+  } : { 
+    type: 'entrada',
+    productId: '',
+    loteMode: 'existing', // 'existing' | 'new'
+    quantity: '',
+    reason: 'Compra',
+    responsible: user?.name || '',
+    observations: '',
+    date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+    newBatchCode: `LOT-${format(new Date(), 'yyyyMMdd')}-001`,
+    newBatchProvider: '',
+    newBatchPrice: '',
+  });
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  // Búsqueda de productos
+  const filteredProductsForSearch = useMemo(() => {
+    if (!searchQuery) return [];
+    return products.filter(p => 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      p.sku.toLowerCase().includes(searchQuery.toLowerCase())
+    ).reduce((acc, p) => acc.find(x => x.name === p.name) ? acc : [...acc, p], []); // Unicos por nombre
+  }, [products, searchQuery]);
+
+  const selectedProductBase = selectedBaseProduct;
+
+  // Nombre del producto seleccionado (para agrupación)
+  const selectedGroupName = useMemo(() => {
+    if (!selectedProductBase) return null;
+    return selectedProductBase.name;
+  }, [selectedProductBase]);
+
+  const batchesForProduct = useMemo(() => {
+    if (!selectedBaseProduct) return [];
+    return products.filter(p => 
+      p.name.trim().toLowerCase() === selectedBaseProduct.name.trim().toLowerCase() && 
+      (p.stock > 0 || (isEditing && p.id === form.productId))
+    );
+  }, [products, selectedBaseProduct, isEditing, form.productId]);
+
+  const totalStock = useMemo(() => {
+    return batchesForProduct.reduce((sum, p) => sum + p.stock, 0);
+  }, [batchesForProduct]);
+
+  // Historial reciente para este producto
+  const { movements } = useInventory();
+  const productHistory = useMemo(() => {
+    if (!selectedProductBase) return [];
+    return (movements || [])
+      .filter(m => m.productName === selectedProductBase.name)
+      .sort((a, b) => {
+        const dA = new Date(a.date).getTime();
+        const dB = new Date(b.date).getTime();
+        return (isNaN(dB) ? 0 : dB) - (isNaN(dA) ? 0 : dA);
+      })
+      .slice(0, 5);
+  }, [movements, selectedProductBase]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.productId && form.loteMode === 'existing') return;
+    
+    onSave({
+      ...form,
+      productName: selectedProductBase?.name,
+      quantity: parseInt(form.quantity),
+      purchasePrice: parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0
+    });
+  };
+
+  const totalCalculated = (parseInt(form.quantity) || 0) * (parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0);
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal animate-slide modal-movements">
+        <div className="modal-header">
+          <h2 className="modal-title">Registrar Movimiento de Inventario</h2>
+          <button className="btn btn-ghost btn-icon" onClick={onClose}><X size={18} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body overflow-y">
+            {isEditing && (
+              <div className="alert-banner mb-24 bg-warning-glow text-warning p-12 rounded border border-warning flex items-center gap-12">
+                <Info size={20} />
+                <div className="fs-13">
+                  <strong>Modo Edición:</strong> Al modificar este registro, el stock se ajustará automáticamente revirtiendo el valor anterior y aplicando el nuevo.
+                </div>
+              </div>
+            )}
+            
+            {/* TIPO DE MOVIMIENTO */}
+            <div className="type-toggle-large" style={{ opacity: isEditing ? 0.6 : 1, pointerEvents: isEditing ? 'none' : 'auto' }}>
+              <button 
+                type="button" 
+                className={`large-type-btn entrada ${form.type === 'entrada' ? 'active' : ''}`}
+                onClick={() => set('type', 'entrada')}
+              >
+                <ArrowUpCircle size={24} />
+                <div className="text-left">
+                  <div className="fw-700">Entrada</div>
+                  <div className="fs-10 fw-400 opacity-70">Aumenta el stock</div>
+                </div>
+              </button>
+              <button 
+                type="button" 
+                className={`large-type-btn salida ${form.type === 'salida' ? 'active' : ''}`}
+                onClick={() => set('type', 'salida')}
+              >
+                <ArrowDownCircle size={24} />
+                <div className="text-left">
+                  <div className="fw-700">Salida</div>
+                  <div className="fs-10 fw-400 opacity-70">Disminuye el stock</div>
+                </div>
+              </button>
+            </div>
+
+            <div className="movement-grid-main">
+              {/* COLUMNA IZQUIERDA: PRODUCTO Y CANTIDAD */}
+              <div className="col-left">
+                <div className="section-title">
+                  <span className="section-number">1</span> SELECCIONAR PRODUCTO
+                </div>
+                
+                <div className="input-group" style={{ position: 'relative', opacity: isEditing ? 0.6 : 1, pointerEvents: isEditing ? 'none' : 'auto' }}>
+                  <div className="search-bar">
+                    <Search size={16} />
+                    <input 
+                      placeholder="Buscar por nombre o SKU..." 
+                      value={searchQuery || (isEditing ? editData.productName : '')}
+                      readOnly={isEditing}
+                      onChange={e => {
+                        setSearchQuery(e.target.value);
+                        if (!e.target.value) setForm(p => ({ ...p, productId: '' }));
+                      }}
+                    />
+                    {selectedProductBase && !isEditing && (
+                      <button type="button" className="btn btn-ghost btn-icon" style={{ padding: '0 4px' }}
+                        onClick={() => { setSearchQuery(''); set('productId', ''); }}
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  {searchQuery.length > 0 && filteredProductsForSearch.length > 0 && !selectedProductBase && (
+                    <div className="search-results-dropdown">
+                      {filteredProductsForSearch.map(p => (
+                        <div key={p.id} className="search-result-item" onClick={() => { 
+                          setSearchQuery(p.name); 
+                          set('productId', p.id); 
+                          setSelectedBaseProduct(p);
+                        }}>
+                          <Package size={14} />
+                          <span>{p.name}</span>
+                          <span className="fs-10 text-muted ml-auto">{p.sku}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {selectedProductBase && (
+                  <div className="product-selection-card mt-16 animate-fade">
+                    <div className="prod-preview-img">
+                      <Package size={40} className="text-muted" />
+                    </div>
+                    <div className="prod-preview-info">
+                      <div className="flex justify-between items-start">
+                        <h3>{selectedProductBase.name}</h3>
+                        <span className="prod-badge-status">Activo</span>
+                      </div>
+                      <div className="prod-meta-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                        <div className="meta-item"><span className="meta-label">SKU</span><span className="meta-val">{selectedProductBase.sku}</span></div>
+                        <div className="meta-item"><span className="meta-label">Categoría</span><span className="meta-val">{selectedProductBase.categoryId}</span></div>
+                        <div className="meta-item"><span className="meta-label">Marca</span><span className="meta-val">{selectedProductBase.brand || 'Genérico'}</span></div>
+                        <div className="meta-item"><span className="meta-label">Unidad</span><span className="meta-val">{selectedProductBase.unit}</span></div>
+                        <div className="meta-item"><span className="meta-label">Stock Total</span><span className="meta-val text-success">{totalStock} und.</span></div>
+                        <div className="meta-item"><span className="meta-label">Lotes Activos</span><span className="meta-val">{batchesForProduct.length} lotes</span></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-24">
+                  <div className="section-title">
+                    <span className="section-number">3</span> CANTIDAD
+                  </div>
+                  <div className="grid-2 items-end">
+                    <div className="input-group mb-0">
+                      <label className="input-label">Cantidad a {form.type === 'entrada' ? 'ingresar' : 'retirar'} *</label>
+                      <div className="input-with-suffix">
+                        <input className="input" type="number" value={form.quantity} onChange={e => set('quantity', e.target.value)} placeholder="0" />
+                        <span className="input-suffix">{selectedProductBase ? abreviar(selectedProductBase.unit) : 'Und.'}</span>
+                      </div>
+                    </div>
+                    <div className="fs-12 text-muted mb-8">
+                      <Info size={14} className="inline mr-4" />
+                      Stock final: <span className="fw-700 text-primary">
+                        {form.type === 'entrada' ? (totalStock + (parseInt(form.quantity) || 0)) : (totalStock - (parseInt(form.quantity) || 0))}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="auto-summary-box mt-20">
+                    <div className="preview-label mb-12">RESUMEN AUTOMÁTICO</div>
+                    <div className="summary-row"><span>Cantidad</span><span className="fw-700">{form.quantity || 0}</span></div>
+                    <div className="summary-row"><span>Precio unitario</span><span>S/ {(parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0).toFixed(2)}</span></div>
+                    <div className="summary-total">
+                      <span className="total-label">TOTAL</span>
+                      <span className="total-val">S/ {totalCalculated.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* COLUMNA DERECHA: LOTE, MOTIVO, ETC */}
+              <div className="col-right">
+                <div className="section-title">
+                  <span className="section-number">2</span> SELECCIONAR LOTE
+                </div>
+
+                <div className="lote-mode-toggle" style={{ opacity: isEditing ? 0.6 : 1, pointerEvents: isEditing ? 'none' : 'auto' }}>
+                  <div className={`mode-option ${form.loteMode === 'existing' ? 'active' : ''}`} onClick={() => set('loteMode', 'existing')}>
+                    <div className="radio-circle" /><span>Usar lote existente</span>
+                  </div>
+                  {form.type === 'entrada' && (
+                    <div className={`mode-option ${form.loteMode === 'new' ? 'active' : ''}`} onClick={() => set('loteMode', 'new')}>
+                      <div className="radio-circle" /><span>Crear nuevo lote</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="card p-16 bg-secondary-glow mb-24" style={{ opacity: isEditing ? 0.6 : 1, pointerEvents: isEditing ? 'none' : 'auto' }}>
+                  {form.loteMode === 'existing' ? (
+                    <div className="input-group mb-0">
+                      <label className="input-label">Elegir lote activo *</label>
+                      <select 
+                        className={`input ${form.productId === 'AUTO_FIFO' ? 'border-primary' : ''}`}
+                        value={form.productId} 
+                        onChange={e => set('productId', e.target.value)} 
+                        disabled={!selectedProductBase || isEditing}
+                      >
+                        <option value="">Seleccionar lote...</option>
+                        {form.type === 'salida' && totalStock > 0 && !isEditing && (
+                          <option value="AUTO_FIFO" style={{ fontWeight: 'bold', color: 'var(--primary)' }}>
+                            ⚡ [AUTO] Distribuir entre lotes (FIFO/FEFO)
+                          </option>
+                        )}
+                        {isEditing ? (
+                          <option value={editData.productId}>{editData.batch || 'General'}</option>
+                        ) : batchesForProduct.map(p => (
+                          <option key={p.id} value={p.id}>
+                            {p.batch || 'General'} — Stock: {p.stock} {abreviar(p.unit)} {p.expiryDate ? `(Vence: ${p.expiryDate})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {form.type === 'salida' && form.productId && form.productId !== 'AUTO_FIFO' && !isEditing && (
+                        (() => {
+                          const selBatch = batchesForProduct.find(b => b.id === form.productId);
+                          if (selBatch && parseInt(form.quantity) > selBatch.stock) {
+                            return (
+                              <div className="alert-inline alert-warning mt-8 fs-11">
+                                <Info size={12} className="mr-4" />
+                                Este lote no alcanza. El sistema solo tomará {selBatch.stock}. 
+                                <button type="button" className="btn-link ml-4" onClick={() => set('productId', 'AUTO_FIFO')}>
+                                  Usar auto-distribución para los {form.quantity}
+                                </button>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()
+                      )}
+                    </div>
+                  ) : (
+                    <div className="grid-2">
+                      <div className="input-group mb-0"><label className="input-label">Código *</label><input className="input" value={form.newBatchCode} onChange={e => set('newBatchCode', e.target.value)} /></div>
+                      <div className="input-group mb-0"><label className="input-label">Proveedor *</label><select className="input" value={form.newBatchProvider} onChange={e => set('newBatchProvider', e.target.value)}><option value="">Sel...</option>{suppliers.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}</select></div>
+                      <div className="input-group mb-0"><label className="input-label">Precio *</label><input className="input" type="number" value={form.newBatchPrice} onChange={e => set('newBatchPrice', e.target.value)} /></div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="section-title">
+                  <span className="section-number">4</span> MOTIVO
+                </div>
+                <select className="input mb-16" value={form.reason} onChange={e => set('reason', e.target.value)}>
+                  {form.type === 'entrada' ? (
+                    <><option value="Compra">Compra</option><option value="Devolución Cliente">Devolución Cliente</option><option value="Ajuste Positivo">Ajuste Positivo</option></>
+                  ) : (
+                    <><option value="Venta">Venta</option><option value="Merma">Merma / Pérdida</option><option value="Devolución Proveedor">Devolución Proveedor</option><option value="Ajuste Negativo">Ajuste Negativo</option></>
+                  )}
+                </select>
+
+                <div className="grid-2 mb-16">
+                  <div>
+                    <div className="section-title"><span className="section-number">5</span> FECHA</div>
+                    <input type="datetime-local" className="input" value={form.date} onChange={e => set('date', e.target.value)} />
+                  </div>
+                  <div>
+                    <div className="section-title"><span className="section-number">6</span> RESPONSABLE</div>
+                    <select className="input" value={form.responsible} onChange={e => set('responsible', e.target.value)}>
+                      <option value="">Seleccionar...</option>
+                      {users.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="section-title"><span className="section-number">7</span> OBSERVACIONES</div>
+                <div className="input-group">
+                  <textarea className="input" rows="2" placeholder="Notas..." value={form.observations} onChange={e => set('observations', e.target.value)} maxLength={200} />
+                  <div style={{ fontSize: '10px', textAlign: 'right', color: 'var(--text-muted)' }}>{form.observations.length}/200</div>
+                </div>
+              </div>
+            </div>
+
+            {/* HISTORIAL RECIENTE */}
+            {selectedProductBase && (
+              <div className="modal-history-section animate-fade">
+                <div className="section-title">
+                  <History size={16} /> ÚLTIMOS MOVIMIENTOS DE ESTE PRODUCTO
+                </div>
+                <table className="table mini">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Tipo</th>
+                      <th>Lote</th>
+                      <th>Cantidad</th>
+                      <th>Motivo</th>
+                      <th>Responsable</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productHistory.map(m => (
+                      <tr key={m.id}>
+                        <td>{m.date ? format(new Date(m.date), 'dd/MM/yyyy HH:mm') : '—'}</td>
+                        <td><span className={`mov-type ${m.type} fs-10`}>{m.type === 'entrada' ? 'Entrada' : 'Salida'}</span></td>
+                        <td><span className="batch-tag">{m.batch}</span></td>
+                        <td className={`fw-700 ${m.type === 'entrada' ? 'text-success' : 'text-danger'}`}>{m.type === 'entrada' ? '+' : '-'}{m.quantity}</td>
+                        <td>{m.reason}</td>
+                        <td>{m.responsible || 'Sistema'}</td>
+                      </tr>
+                    ))}
+                    {productHistory.length === 0 && (
+                      <tr><td colSpan="6" className="text-center text-muted">Sin historial reciente</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="modal-footer" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-secondary)', display: 'flex', justifyContent: 'space-between' }}>
+            {isEditing ? (
+              <button type="button" className="btn btn-danger" onClick={() => onDelete(editData.id)}>
+                Eliminar Registro
+              </button>
+            ) : <div />}
+            <div className="flex gap-12">
+              <button type="button" className="btn btn-secondary" onClick={onClose}>
+                Cancelar
+              </button>
+              <button type="submit" className="btn btn-primary">
+                {isEditing ? 'Guardar Cambios' : 'Registrar Movimiento'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function StockMovements() {
+  const { user } = useAuth();
+  const { products, movements, suppliers, addMovement, addMultiBatchMovement, updateMovement, deleteMovement } = useInventory();
+  const toast = useToast();
+  
+  const [showModal, setShowModal] = useState(false);
+  const [editData, setEditData] = useState(null);
+  const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState('');
+
+  const canManage = user?.role === 'admin' || user?.permissions?.movements;
+
+  const filtered = movements.filter(m => {
+    const matchSearch = 
+      m.productName?.toLowerCase().includes(search.toLowerCase()) || 
+      m.reason?.toLowerCase().includes(search.toLowerCase()) ||
+      m.batch?.toLowerCase().includes(search.toLowerCase());
+    const matchType = !filterType || m.type === filterType;
+    return matchSearch && matchType;
+  });
+
+  const sortedMovements = useMemo(() => {
+    return [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [filtered]);
+
+  const handleSave = (data) => {
+    try {
+      if (editData) {
+        updateMovement(editData.id, data);
+        toast.success('Movimiento actualizado');
+      } else {
+        if (data.productId === 'AUTO_FIFO') {
+          addMultiBatchMovement(data);
+          toast.success('Salida multilote procesada correctamente');
+        } else {
+          addMovement(data);
+          toast.success('Movimiento registrado');
+        }
+      }
+      setShowModal(false);
+      setEditData(null);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('¿Estás seguro de eliminar este movimiento? El stock será revertido.')) {
+      try {
+        deleteMovement(id);
+        toast.success('Movimiento eliminado');
+        setShowModal(false);
+        setEditData(null);
+      } catch (err) {
+        toast.error(err.message);
+      }
+    }
+  };
+
+  const handleOpenEdit = (m) => {
+    if (!canManage) return;
+    setEditData(m);
+    setShowModal(true);
+  };
+
+  return (
+    <div className="animate-fade">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Movimientos de Stock</h1>
+        <p className="page-subtitle">{movements.length} operaciones registradas con trazabilidad avanzada</p>
+        </div>
+        {canManage && (
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            <Plus size={16} /> Nuevo Movimiento
+          </button>
+        )}
+      </div>
+
+      <div className="inv-filters filter-bar mb-16">
+        <div className="search-bar" style={{ flex: 1 }}>
+          <Search size={16} style={{ color: 'var(--text-subtle)', flexShrink: 0 }} />
+          <input placeholder="Buscar por producto, lote o motivo..." value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <div className="filter-group">
+          <Filter size={14} className="text-primary" />
+          <select className="filter-select" value={filterType} onChange={e => setFilterType(e.target.value)}>
+            <option value="">Todos los tipos</option>
+            <option value="entrada">Entradas</option>
+            <option value="salida">Salidas</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="table-wrapper">
+        {sortedMovements.length === 0 ? (
+          <div className="empty-state">
+            <Layers size={32} className="text-muted mb-8" />
+            <p>No se encontraron movimientos</p>
+          </div>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Tipo</th>
+                <th>Lote / Batch</th>
+                <th>Motivo</th>
+                <th>Responsable</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedMovements.map(m => {
+                const product = products.find(p => p.id === m.productId || p.name === m.productName);
+                return (
+                  <tr 
+                    key={m.id} 
+                    onDoubleClick={() => handleOpenEdit(m)}
+                    style={{ cursor: canManage ? 'pointer' : 'default' }}
+                    title={canManage ? 'Doble clic para editar' : ''}
+                  >
+                    <td className="text-muted">{m.date ? format(new Date(m.date), "dd/MM/yyyy HH:mm") : '—'}</td>
+                    <td className="fw-500 text-primary">{product?.sku || '—'}</td>
+                    <td className="fw-600">{m.productName}</td>
+                    <td><span className={`mov-qty ${m.type}`}>{m.type === 'entrada' ? '+' : '-'}{m.quantity}</span></td>
+                    <td>
+                      <div className={`mov-type ${m.type}`}>
+                        {m.type === 'entrada' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
+                        {m.type === 'entrada' ? 'Entrada' : 'Salida'}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="batch-tag">{m.batch || '—'}</span>
+                    </td>
+                    <td className="text-muted">{m.reason || '—'}</td>
+                    <td className="text-muted">{m.responsible || 'Sistema'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {showModal && (
+        <MovementModal 
+          products={products} 
+          suppliers={suppliers}
+          editData={editData}
+          onSave={handleSave} 
+          onDelete={handleDelete}
+          onClose={() => { setShowModal(false); setEditData(null); }} 
+        />
+      )}
+    </div>
+  );
+}

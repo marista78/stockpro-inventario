@@ -1,0 +1,57 @@
+Aquí está el CSS corregido para los scrollbars:El problema más común es que los cambios en el CSS del scrollbar no afectan a elementos específicos porque esos elementos heredan estilos o tienen su propio overflow. Te explico la solución y te muestro exactamente qué cambiar:
+
+
+❌ Problema — el selector actual
+Antes*::-webkit-scrollbar {
+  width: 20px !important;
+  height: 20px !important;
+  display: block !important;
+}
+
+/* El problema: el navegador puede ignorar
+!important en pseudo-elementos de scrollbar
+cuando el overflow no está forzado */
+
+
+
+Solución — reemplaza toda la sección scrollbars
+
+Nuevo/* ── SCROLLBARS ── */
+
+html, body, * {
+  scrollbar-width: auto;
+  scrollbar-color: var(--primary) var(--bg-secondary);
+}
+
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--primary);
+  border-radius: 7px;
+  border: 3px solid var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-light);
+}
+
+
+Además — fuerza overflow en .table-wrapper
+
+Agregar.table-wrapper {
+  overflow-x: scroll; /* scroll fuerza visible, auto lo oculta */
+  overflow-y: scroll;
+}
+
+
+💡 Por qué funcionaba antes pero no ahora: El selector *::-webkit-scrollbar con !important a veces es ignorado por Chrome cuando el elemento tiene overflow: auto — el navegador decide si mostrar el scrollbar. Cambiar a overflow: scroll lo fuerza siempre visible.
+
+Los dos cambios clave son:
+
+1. Quita el * del selector de scrollbar — usa ::webkit-scrollbar sin el asterisco. Chrome a veces ignora el * combinado con !important en pseudo-elementos.
+2. Cambia overflow: auto a overflow: scroll en .table-wrapper — con auto, el navegador decide cuándo mostrar el scrollbar y puede ocultarlo aunque esté estilizado. Con scroll, siempre es visible.
+El tamaño de 20px era demasiado grande para verse bien; 14px con border de 3px da el efecto visual correcto y se ve en todos los navegadores.

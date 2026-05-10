@@ -1,0 +1,53 @@
+.install-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  box-shadow: 0 8px 32px var(--primary-glow), var(--shadow-lg);
+  min-width: 320px;
+  max-width: 480px;
+  width: calc(100vw - 40px);
+}
+
+.install-banner-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary-glow);
+  color: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.install-banner-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.install-banner-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.install-banner-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.install-banner-close {
+  color: var(--text-subtle);
+  flex-shrink: 0;
+}
