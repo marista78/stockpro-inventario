@@ -50,25 +50,52 @@ function CategoryModal({ category, onSave, onClose }) {
 
 export default function Categories() {
   const { user } = useAuth();
-  const { categories, products, addCategory, updateCategory, deleteCategory } = useInventory();
+  const { categories, products, addCategory, updateCategory, deleteCategory, loading } = useInventory();
   const toast = useToast();
   const [showModal, setShowModal] = useState(false);
   const [editCat, setEditCat] = useState(null);
 
   const canManage = user?.role === 'admin' || user?.permissions?.categories;
 
-  const handleSave = (data) => {
-    if (editCat) { updateCategory(editCat.id, data); toast.success('Categoría actualizada'); }
-    else { addCategory(data); toast.success('Categoría creada'); }
-    setShowModal(false); setEditCat(null);
+  const handleSave = async (data) => {
+    try {
+      if (editCat) { 
+        await updateCategory(editCat.id, data); 
+        toast.success('Categoría actualizada'); 
+      } else { 
+        await addCategory(data); 
+        toast.success('Categoría creada'); 
+      }
+      setShowModal(false); 
+      setEditCat(null);
+    } catch (err) {
+      toast.error('Error al guardar: ' + err.message);
+    }
   };
 
-  const handleDelete = (c) => {
+  const handleDelete = async (c) => {
     const count = products.filter(p => p.categoryId === c.id).length;
-    if (count > 0) { toast.warning(`No puedes eliminar "${c.name}": tiene ${count} producto(s)`); return; }
+    if (count > 0) { 
+      toast.warning(`No puedes eliminar "${c.name}": tiene ${count} producto(s)`); 
+      return; 
+    }
     if (!confirm(`¿Eliminar la categoría "${c.name}"?`)) return;
-    deleteCategory(c.id); toast.success('Categoría eliminada');
+    try {
+      await deleteCategory(c.id); 
+      toast.success('Categoría eliminada');
+    } catch (err) {
+      toast.error('Error al eliminar');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex-center" style={{ height: '60vh', flexDirection: 'column', gap: '20px' }}>
+        <div className="spinner" />
+        <p className="text-muted">Cargando categorías...</p>
+      </div>
+    );
+  }
 
   return (
     <div>

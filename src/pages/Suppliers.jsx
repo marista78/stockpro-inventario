@@ -138,7 +138,7 @@ function SupplierModal({ supplier, products, onSave, onClose }) {
 
 export default function Suppliers() {
   const { user } = useAuth();
-  const { products, setProducts, suppliers, addSupplier, updateSupplier, deleteSupplier } = useInventory();
+  const { products, updateProduct, suppliers, addSupplier, updateSupplier, deleteSupplier, loading } = useInventory();
   const toast = useToast();
   const [search, setSearch] = useState('');
   
@@ -151,44 +151,65 @@ export default function Suppliers() {
     s.contact?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSave = (data, selectedProductNames) => {
-    let finalSupName = data.name;
-    let oldName = editSup?.name;
+  const handleSave = async (data, selectedProductNames) => {
+    try {
+      let finalSupName = data.name;
+      let oldName = editSup?.name;
 
-    if (editSup) {
-      updateSupplier(editSup.id, data);
-    } else {
-      addSupplier(data);
+      if (editSup) {
+        await updateSupplier(editSup.id, data);
+      } else {
+        await addSupplier(data);
+      }
+
+      // Actualizar los productos en el inventario (Cloud)
+      const updates = products.map(p => {
+        const pName = p.name.trim().toLowerCase();
+        const currentProv = p.provider?.trim().toLowerCase();
+        
+        // Si el producto está en la nueva lista seleccionada para este proveedor
+        if (selectedProductNames.includes(pName)) {
+          if (currentProv !== finalSupName.trim().toLowerCase()) {
+            return updateProduct(p.id, { provider: finalSupName });
+          }
+        }
+        // Si el producto TENÍA a este proveedor pero ya NO está seleccionado
+        else if (oldName && currentProv === oldName.trim().toLowerCase()) {
+          return updateProduct(p.id, { provider: '' });
+        }
+        return null;
+      }).filter(Boolean);
+
+      if (updates.length > 0) {
+        await Promise.all(updates);
+      }
+
+      toast.success(editSup ? 'Proveedor actualizado' : 'Proveedor registrado');
+      setShowModal(false);
+      setEditSup(null);
+    } catch (err) {
+      toast.error('Error al guardar: ' + err.message);
     }
-
-    // Actualizar los productos en el inventario
-    setProducts(prev => prev.map(p => {
-      const pName = p.name.trim().toLowerCase();
-      const currentProv = p.provider?.trim().toLowerCase();
-      
-      // Si el producto está en la nueva lista seleccionada para este proveedor
-      if (selectedProductNames.includes(pName)) {
-        return { ...p, provider: finalSupName };
-      }
-      
-      // Si el producto TENÍA a este proveedor pero ya NO está seleccionado
-      if (oldName && currentProv === oldName.trim().toLowerCase()) {
-        return { ...p, provider: '' };
-      }
-
-      return p;
-    }));
-
-    toast.success(editSup ? 'Proveedor actualizado' : 'Proveedor registrado');
-    setShowModal(false);
-    setEditSup(null);
   };
 
-  const handleDelete = (s) => {
+  const handleDelete = async (s) => {
     if (!confirm(`¿Eliminar al proveedor "${s.name}"?`)) return;
-    deleteSupplier(s.id);
-    toast.success('Proveedor eliminado');
+    try {
+      await deleteSupplier(s.id);
+      toast.success('Proveedor eliminado');
+    } catch (err) {
+      toast.error('Error al eliminar');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex-center" style={{ height: '60vh', flexDirection: 'column', gap: '20px' }}>
+        <div className="spinner" />
+        <p className="text-muted">Cargando proveedores...</p>
+      </div>
+    );
+  }
 
   return (
     <div>

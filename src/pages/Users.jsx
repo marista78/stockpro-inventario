@@ -86,7 +86,7 @@ export default function Users() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingId) {
@@ -95,10 +95,10 @@ export default function Users() {
         if (!dataToUpdate.password) {
           delete dataToUpdate.password;
         }
-        updateUser(editingId, dataToUpdate);
+        await updateUser(editingId, dataToUpdate);
         toast.success('Usuario actualizado con éxito');
       } else {
-        addUser(formData);
+        await addUser(formData);
         toast.success('Usuario creado con éxito');
       }
       setShowModal(false);
@@ -107,10 +107,10 @@ export default function Users() {
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('¿Estás seguro de eliminar este usuario?')) {
       try {
-        deleteUser(id);
+        await deleteUser(id);
         toast.success('Usuario eliminado');
       } catch (error) {
         toast.error(error.message);

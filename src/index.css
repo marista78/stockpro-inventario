@@ -167,6 +167,7 @@ select.input { cursor: pointer; }
   animation: fadeIn 0.2s ease;
 }
 .modal {
+  position: relative;
   background: var(--bg-card); border: 1px solid var(--border-light);
   border-radius: var(--radius-lg); padding: 28px;
   width: 100%; max-width: 560px; max-height: 90vh;
@@ -384,4 +385,42 @@ select.input { cursor: pointer; }
 .filter-select option {
   background-color: var(--bg-card);
   color: var(--text);
+}
+
+/* ── NAV ARROWS ── */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: hsla(222, 35%, 13%, 0.4);
+  border: 1px solid var(--border-light);
+  color: var(--text-muted);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  z-index: 1001;
+  backdrop-filter: blur(4px);
+}
+
+.nav-arrow:hover {
+  background: var(--primary);
+  border-color: var(--primary-light);
+  transform: translateY(-50%) scale(1.1);
+  color: #fff;
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.nav-arrow:active { transform: translateY(-50%) scale(0.95); }
+
+.nav-arrow.prev { left: 10px; }
+.nav-arrow.next { right: 10px; }
+
+@media (max-width: 1100px) {
+  .nav-arrow { 
+    width: 38px; height: 38px; 
+  }
 }

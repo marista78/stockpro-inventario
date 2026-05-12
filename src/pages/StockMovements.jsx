@@ -429,36 +429,36 @@ export default function StockMovements() {
     return [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [filtered]);
 
-  const handleSave = (data) => {
+  const handleSave = async (data) => {
     try {
       if (editData) {
-        updateMovement(editData.id, data);
+        await updateMovement(editData.id, data);
         toast.success('Movimiento actualizado');
       } else {
         if (data.productId === 'AUTO_FIFO') {
-          addMultiBatchMovement(data);
+          await addMultiBatchMovement(data);
           toast.success('Salida multilote procesada correctamente');
         } else {
-          addMovement(data);
+          await addMovement(data);
           toast.success('Movimiento registrado');
         }
       }
       setShowModal(false);
       setEditData(null);
     } catch (err) {
-      toast.error(err.message);
+      toast.error('Error: ' + err.message);
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('¿Estás seguro de eliminar este movimiento? El stock será revertido.')) {
       try {
-        deleteMovement(id);
+        await deleteMovement(id);
         toast.success('Movimiento eliminado');
         setShowModal(false);
         setEditData(null);
       } catch (err) {
-        toast.error(err.message);
+        toast.error('Error: ' + err.message);
       }
     }
   };

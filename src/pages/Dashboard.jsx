@@ -43,7 +43,16 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function Dashboard() {
-  const { products, movements, categories, lowStockProducts, reorderProducts, totalValue } = useInventory();
+  const { products, movements, categories, lowStockProducts, reorderProducts, totalValue, loading } = useInventory();
+
+  if (loading) {
+    return (
+      <div className="flex-center" style={{ height: '60vh', flexDirection: 'column', gap: '20px' }}>
+        <div className="spinner" />
+        <p className="text-muted">Cargando métricas en tiempo real...</p>
+      </div>
+    );
+  }
 
   // Last 7 days chart data
   const chartData = Array.from({ length: 7 }, (_, i) => {

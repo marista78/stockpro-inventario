@@ -75,8 +75,8 @@ export default defineConfig({
           }
         ]
       },
-      devOptions: {
-        enabled: true
+      jsdevOptions: {
+        enabled: false
       }
     })
   ],

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { InventoryProvider } from './context/InventoryContext';
+import { SettingsProvider } from './context/SettingsContext';
 import { ToastProvider } from './context/ToastContext';
 import InstallBanner from './components/InstallBanner';
 import Layout from './components/Layout';
@@ -23,7 +24,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <InventoryProvider>
+        <SettingsProvider>
+          <InventoryProvider>
           <ToastProvider>
             <InstallBanner />
             <Routes>
@@ -42,7 +44,8 @@ export default function App() {
             </Routes>
           </ToastProvider>
         </InventoryProvider>
-      </AuthProvider>
-    </BrowserRouter>
+      </SettingsProvider>
+    </AuthProvider>
+  </BrowserRouter>
   );
 }

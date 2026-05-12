@@ -127,5 +127,26 @@ Se ha procedido a la eliminación completa de los módulos de Inteligencia Artif
 
 ---
 
-**Última actualización:** 10 de mayo de 2026 (Eliminación de IA y limpieza de dependencias)
+## 11. Personalización, Navegación Premium y Persistencia (10/05/2026)
+
+### 🎨 Branding y Configuración Dinámica
+Se ha completado el sistema de identidad visual para permitir una personalización total del sistema StockAI:
+- **Persistencia en Supabase:** Implementación de la tabla `settings` para guardar permanentemente el nombre de la app, el icono y el color principal.
+- **Corrección de Estado:** Se resolvió un error de referencia en `SettingsContext.jsx` que impedía que la configuración se mantuviera tras recargar la página.
+- **Limpieza de Mantenimiento:** Se eliminaron las tarjetas redundantes (como Cuentas Demo) para centrar el panel en la personalización de marca.
+
+### 📦 Navegación de Inventario (Slider)
+Se ha transformado la visualización de productos en una experiencia mucho más fluida y profesional:
+- **Flechas Laterales (Slider):** Se añadieron botones de navegación circulares de gran tamaño en los extremos de la pantalla dentro de la vista de detalles.
+- **Atajos de Teclado:** Soporte completo para las flechas del teclado (`←` y `→`) para navegar entre productos sin cerrar el modal.
+- **Sincronización de Imágenes:** Se corrigió el mapeo de `image_url` a `image` en `InventoryContext.jsx`, asegurando que las fotos de los productos no desaparezcan tras un refresco de página.
+- **Edición Rápida:** Habilitación de la carga de imágenes directa desde la vista de detalles para actualizaciones veloces de catálogo.
+
+### 🔐 Seguridad y Experiencia de Usuario
+- **Login Simplificado:** Remoción de la sección pública de "Acceso de demostración" en la página de Login para privatizar el acceso al sistema.
+- **Mapeo de Usuarios:** Corrección de la propiedad `created_at` en el contexto de autenticación para mostrar correctamente la fecha de registro de los nuevos usuarios.
+
+---
+
+**Última actualización:** 10 de mayo de 2026 (Personalización, Navegación Premium y Persistencia)
 

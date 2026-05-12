@@ -20,7 +20,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      login(form.email, form.password);
+      await login(form.email, form.password);
       toast.success('¡Bienvenido de vuelta!');
       navigate('/');
     } catch (err) {
@@ -29,8 +29,6 @@ export default function Login() {
       setLoading(false);
     }
   };
-
-  const fillDemo = () => setForm({ email: 'demo@demo.com', password: 'demo123' });
 
   return (
     <div className="login-page">
@@ -82,19 +80,6 @@ export default function Login() {
             {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
           </button>
         </form>
-
-        <div className="login-divider"><span>Acceso de demostración</span></div>
-
-        <div className="demo-creds">
-          <div className="demo-card" onClick={fillDemo}>
-            <span className="demo-label">Usuario Demo</span>
-            <span className="demo-email">demo@demo.com / demo123</span>
-          </div>
-          <div className="demo-card" onClick={() => setForm({ email: 'admin@stockpro.com', password: 'admin123' })}>
-            <span className="demo-label">Administrador</span>
-            <span className="demo-email">admin@stockpro.com / admin123</span>
-          </div>
-        </div>
       </div>
     </div>
   );

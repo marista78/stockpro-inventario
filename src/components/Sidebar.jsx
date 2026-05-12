@@ -5,7 +5,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
+import { useSettings } from '../context/SettingsContext';
 import { useState } from 'react';
+import * as LucideIcons from 'lucide-react';
 import './Sidebar.css';
 
 const NAV = [
@@ -16,15 +18,18 @@ const NAV = [
   { to: '/movimientos', icon: ArrowLeftRight, label: 'Movimientos', permission: 'movements' },
   { to: '/usuarios', icon: Users, label: 'Usuarios', adminOnly: true },
   { to: '/escaner', icon: QrCode, label: 'Escáner QR' },
-  { to: '/reportes', icon: BarChart3, label: 'Reportes', permission: 'reports' },
+  { to: '/reportes', icon: BarChart3, label: 'Reportes' },
   { to: '/mantenimiento', icon: Settings, label: 'Configuración', adminOnly: true },
 ];
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const { lowStockProducts } = useInventory();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const AppIcon = LucideIcons[settings.appIcon] || LucideIcons.Boxes;
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -39,7 +44,7 @@ export default function Sidebar() {
     // Si no hay usuario, no mostramos nada
     if (!user) return false;
 
-    // Los administradores (Martin Arista) siempre ven todo
+    // Los administradores siempre ven todo
     if (user.role?.toLowerCase() === 'admin') return true;
     
     // Si es una sección solo para administradores y no lo es, ocultar
@@ -67,11 +72,19 @@ export default function Sidebar() {
       <aside className={`sidebar ${mobileOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">
-            <Boxes size={22} />
+            {settings.appLogoUrl ? (
+              <img 
+                src={settings.appLogoUrl} 
+                alt="Logo" 
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+              />
+            ) : (
+              <AppIcon size={22} />
+            )}
           </div>
-          <span className="sidebar-logo-text">StockPro</span>
+          <span className="sidebar-logo-text">{settings.appName}</span>
           <button className="mobile-close btn btn-ghost btn-icon" onClick={() => setMobileOpen(false)}>
-            <X size={18} />
+            <LucideIcons.X size={18} />
           </button>
         </div>
 
@@ -110,7 +123,7 @@ export default function Sidebar() {
             <LogOut size={17} />
             <span className="tooltip">Cerrar sesión</span>
           </button>
-          {user?.role === 'admin' && (
+          {user?.role?.toLowerCase() === 'admin' && (
             <button className="sidebar-logout btn btn-ghost btn-icon tooltip-wrap" onClick={handleReset} style={{ color: 'var(--text-subtle)' }}>
               <Settings size={17} />
               <span className="tooltip">Resetear Datos</span>

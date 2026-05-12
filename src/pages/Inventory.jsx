@@ -1,8 +1,9 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useToast } from '../context/ToastContext';
-import { Plus, Search, Pencil, Trash2, QrCode, X, Upload, Package, Filter, Download, ChevronRight, Layers, AlertTriangle, Info } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, QrCode, X, Upload, Package, Filter, Download, ChevronRight, ChevronLeft, Layers, AlertTriangle, Info } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
@@ -51,105 +52,162 @@ function ProductModal({ product, categories, onSave, onClose, calculateSuggested
     });
   };
 
-  return (
-    <div className="modal-overlay">
-      <div className="modal animate-slide">
-        <div className="modal-header">
-          <h2 className="modal-title">{product ? 'Editar Producto / Lote' : 'Nuevo Producto'}</h2>
-          <button className="btn btn-ghost btn-icon" onClick={onClose}><X size={18} /></button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body overflow-y">
-            <div className="grid-2">
-              <div className="input-group">
-                <label className="input-label">Nombre del Producto *</label>
-                <input className="input" value={form.name} onChange={e => set('name', e.target.value)} required placeholder="Ej: Monitor LED 24" />
-              </div>
-              <div className="input-group">
-                <label className="input-label">SKU / Código *</label>
-                <input className="input" value={form.sku} onChange={e => set('sku', e.target.value)} required placeholder="Ej: MON-001" />
-              </div>
-            </div>
-            
-            <div className="grid-2">
-              <div className="input-group">
-                <label className="input-label">Categoría *</label>
-                <select className="input" value={form.categoryId} onChange={e => set('categoryId', e.target.value)} required>
-                  <option value="">Seleccionar...</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div className="input-group">
-                <label className="input-label">Precio Unitario *</label>
-                <input className="input" type="number" step="0.01" value={form.price} onChange={e => set('price', e.target.value)} required placeholder="0.00" />
-              </div>
-            </div>
+    const fileRef = useRef();
 
-            <div className="grid-2">
-              <div className="input-group">
-                <label className="input-label">Stock Actual</label>
-                <input className="input" type="number" value={form.stock} onChange={e => set('stock', e.target.value)} placeholder="0" />
-              </div>
-              <div className="input-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label className="input-label">Stock Mínimo (Alerta)</label>
-                  {suggested && (
-                    <span className="text-primary fw-600" style={{ fontSize: '11px', cursor: 'help' }} title="Sugerencia basada en ventas reales y lead time">
-                      Sugerencia: {suggested}
-                    </span>
-                  )}
-                </div>
-                <input className="input" type="number" value={form.minStock} onChange={e => set('minStock', e.target.value)} placeholder="0" />
-              </div>
-            </div>
+    const handleFileChange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 800000) {
+        alert('La imagen es muy pesada. Máximo 800KB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        set('image', evt.target.result);
+      };
+      reader.readAsDataURL(file);
+    };
 
-            <div className="grid-2">
-              <div className="input-group">
-                <label className="input-label">Unidad de Medida</label>
-                <select className="input" value={form.unit} onChange={e => set('unit', e.target.value)}>
-                  <option value="Unidad">Unidad</option>
-                  <option value="Caja">Caja</option>
-                  <option value="Paquete">Paquete</option>
-                  <option value="Kg">Kg</option>
-                  <option value="Litro">Litro</option>
-                  <option value="Metro">Metro</option>
-                </select>
-              </div>
-              <div className="input-group">
-                <label className="input-label">Marca</label>
-                <input className="input" value={form.brand} onChange={e => set('brand', e.target.value)} placeholder="Ej: Samsung" />
-              </div>
-            </div>
-
-            <div className="divider"><span>Información de Lote</span></div>
-
-            <div className="grid-2">
-              <div className="input-group">
-                <label className="input-label">Número de Lote / Batch</label>
-                <input className="input" value={form.batch} onChange={e => set('batch', e.target.value)} placeholder="Ej: LT-2024-001" />
-              </div>
-              <div className="input-group">
-                <label className="input-label">Proveedor</label>
-                <input className="input" value={form.provider} onChange={e => set('provider', e.target.value)} placeholder="Nombre del proveedor" />
-              </div>
-            </div>
-
-            <div className="grid-2">
-              <div className="input-group">
-                <label className="input-label">Fecha de Ingreso</label>
-                <input className="input" type="date" value={form.entryDate} onChange={e => set('entryDate', e.target.value)} />
-              </div>
-              <div className="input-group">
-                <label className="input-label">Fecha de Vencimiento</label>
-                <input className="input" type="date" value={form.expiryDate} onChange={e => set('expiryDate', e.target.value)} />
-              </div>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">URL de Imagen (opcional)</label>
-              <input className="input" value={form.image || ''} onChange={e => set('image', e.target.value)} placeholder="https://..." />
-            </div>
+    return (
+      <div className="modal-overlay">
+        <div className="modal animate-slide">
+          <div className="modal-header">
+            <h2 className="modal-title">{product ? 'Editar Producto / Lote' : 'Nuevo Producto'}</h2>
+            <button className="btn btn-ghost btn-icon" onClick={onClose}><X size={18} /></button>
           </div>
+          <form onSubmit={handleSubmit}>
+            <div className="modal-body overflow-y">
+              <div className="grid-2">
+                <div className="input-group">
+                  <label className="input-label">Nombre del Producto *</label>
+                  <input className="input" value={form.name} onChange={e => set('name', e.target.value)} required placeholder="Ej: Monitor LED 24" />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">SKU / Código *</label>
+                  <input className="input" value={form.sku} onChange={e => set('sku', e.target.value)} required placeholder="Ej: MON-001" />
+                </div>
+              </div>
+              
+              <div className="grid-2">
+                <div className="input-group">
+                  <label className="input-label">Categoría *</label>
+                  <select className="input" value={form.categoryId} onChange={e => set('categoryId', e.target.value)} required>
+                    <option value="">Seleccionar...</option>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Precio Unitario *</label>
+                  <input className="input" type="number" step="0.01" value={form.price} onChange={e => set('price', e.target.value)} required placeholder="0.00" />
+                </div>
+              </div>
+  
+              <div className="grid-2">
+                <div className="input-group">
+                  <label className="input-label">Stock Actual</label>
+                  <input className="input" type="number" value={form.stock} onChange={e => set('stock', e.target.value)} placeholder="0" />
+                </div>
+                <div className="input-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label className="input-label">Stock Mínimo (Alerta)</label>
+                    {suggested && (
+                      <span className="text-primary fw-600" style={{ fontSize: '11px', cursor: 'help' }} title="Sugerencia basada en ventas reales y lead time">
+                        Sugerencia: {suggested}
+                      </span>
+                    )}
+                  </div>
+                  <input className="input" type="number" value={form.minStock} onChange={e => set('minStock', e.target.value)} placeholder="0" />
+                </div>
+              </div>
+  
+              <div className="grid-2">
+                <div className="input-group">
+                  <label className="input-label">Unidad de Medida</label>
+                  <select className="input" value={form.unit} onChange={e => set('unit', e.target.value)}>
+                    <option value="Unidad">Unidad</option>
+                    <option value="Caja">Caja</option>
+                    <option value="Paquete">Paquete</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Litro">Litro</option>
+                    <option value="Metro">Metro</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Marca</label>
+                  <input className="input" value={form.brand} onChange={e => set('brand', e.target.value)} placeholder="Ej: Samsung" />
+                </div>
+              </div>
+  
+              <div className="divider"><span>Información de Lote</span></div>
+  
+              <div className="grid-2">
+                <div className="input-group">
+                  <label className="input-label">Número de Lote / Batch</label>
+                  <input className="input" value={form.batch} onChange={e => set('batch', e.target.value)} placeholder="Ej: LT-2024-001" />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Proveedor</label>
+                  <input className="input" value={form.provider} onChange={e => set('provider', e.target.value)} placeholder="Nombre del proveedor" />
+                </div>
+              </div>
+  
+              <div className="grid-2">
+                <div className="input-group">
+                  <label className="input-label">Fecha de Ingreso</label>
+                  <input className="input" type="date" value={form.entryDate} onChange={e => set('entryDate', e.target.value)} />
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Fecha de Vencimiento</label>
+                  <input className="input" type="date" value={form.expiryDate} onChange={e => set('expiryDate', e.target.value)} />
+                </div>
+              </div>
+  
+              <div className="input-group">
+                <label className="input-label">Imagen del Producto</label>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div 
+                    style={{ 
+                      width: '60px', 
+                      height: '60px', 
+                      background: 'var(--bg-secondary)', 
+                      borderRadius: '8px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      border: '1px dashed var(--border)',
+                      overflow: 'hidden',
+                      flexShrink: 0
+                    }}
+                  >
+                    {form.image ? (
+                      <img src={form.image} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <Package size={24} className="text-muted" />
+                    )}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input 
+                        className="input" 
+                        value={form.image || ''} 
+                        onChange={e => set('image', e.target.value)} 
+                        placeholder="Pegar URL o subir archivo..." 
+                        style={{ fontSize: '12px' }}
+                      />
+                      <button 
+                        type="button" 
+                        className="btn btn-secondary btn-icon" 
+                        onClick={() => fileRef.current.click()}
+                        title="Subir archivo"
+                      >
+                        <Upload size={16} />
+                      </button>
+                    </div>
+                    <input type="file" ref={fileRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
+                  </div>
+                </div>
+              </div>
+            </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
             <button type="submit" className="btn btn-primary">{product ? 'Guardar Cambios' : 'Crear Producto'}</button>
@@ -160,7 +218,7 @@ function ProductModal({ product, categories, onSave, onClose, calculateSuggested
   );
 }
 
-function ProductDetailModal({ productGroup, categories, onClose, getCategoryById, calculateSuggestedROP, onEdit, onDelete, canManage }) {
+function ProductDetailModal({ productGroup, categories, onClose, getCategoryById, calculateSuggestedROP, onEdit, onDelete, canManage, onNavigate }) {
   const main = productGroup.main;
   const cat = getCategoryById(main.categoryId);
   const totalStock = productGroup.totalStock;
@@ -180,25 +238,33 @@ function ProductDetailModal({ productGroup, categories, onClose, getCategoryById
     reader.readAsDataURL(file);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') onNavigate(-1);
+      if (e.key === 'ArrowRight') onNavigate(1);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onNavigate]);
+
   return (
-    <div className="modal-overlay">
-      <div className="modal modal-lg animate-slide">
-        <div className="modal-header">
-          <div>
-            <h2 className="modal-title">{main.name}</h2>
-            <span className="text-muted" style={{ fontSize: '13px' }}>SKU: {main.sku} | {cat?.name}</span>
-          </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {canManage && (
-              <button className="btn btn-ghost btn-icon" style={{ color: 'var(--primary)' }} onClick={() => onEdit(main)}>
-                <Pencil size={18} />
-              </button>
-            )}
-            <button className="btn btn-ghost btn-icon" onClick={onClose}><X size={18} /></button>
-          </div>
+    <>
+      <div className="modal-header">
+        <div>
+          <h2 className="modal-title">{main.name}</h2>
+          <span className="text-muted" style={{ fontSize: '13px' }}>SKU: {main.sku} | {cat?.name}</span>
         </div>
-        
-        <div className="modal-body overflow-y">
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {canManage && (
+            <button className="btn btn-ghost btn-icon" style={{ color: 'var(--primary)' }} onClick={() => onEdit(main)}>
+              <Pencil size={18} />
+            </button>
+          )}
+          <button className="btn btn-ghost btn-icon" onClick={onClose}><X size={18} /></button>
+        </div>
+      </div>
+      
+      <div className="modal-body overflow-y">
           {/* Fila superior: imagen + stats */}
           <div className="detail-top-row">
             <div className="detail-image-box">
@@ -237,30 +303,32 @@ function ProductDetailModal({ productGroup, categories, onClose, getCategoryById
             </div>
           </div>
 
-          {/* Especificaciones */}
           <div className="divider mt-12"><span>Especificaciones</span></div>
           <div className="tech-info-grid">
-            <div className="t-item"><strong>Marca:</strong> {main.brand || '—'}</div>
-            <div className="t-item"><strong>Categoría:</strong> {cat?.name || '—'}</div>
+            <div className="t-item">
+              <strong>Marca:</strong> {main.brand || '---'}
+            </div>
+            <div className="t-item">
+              <strong>Categoría:</strong> {cat?.name || '---'}
+            </div>
           </div>
 
-          {/* Tabla de lotes */}
-          <h3 className="section-subtitle" style={{ marginTop: 24 }}>Lotes / Batches Disponibles</h3>
-          <div className="batch-table-wrapper">
-            <table className="batch-table">
+          <div className="divider mt-12"><span>Lotes / Batches Disponibles</span></div>
+          <div className="batches-table-mini">
+            <table>
               <thead>
                 <tr>
-                  <th>N° Lote</th>
+                  <th>Nº Lote</th>
                   <th>Stock del Lote</th>
                   <th>Proveedor</th>
                 </tr>
               </thead>
               <tbody>
-                {productGroup.items.map(item => (
-                  <tr key={item.id}>
-                    <td className="fw-600">{item.batch || '—'}</td>
-                    <td className={item.stock < 5 ? 'text-danger fw-700' : 'fw-600'}>{item.stock} {abreviar(item.unit)}</td>
-                    <td className="text-muted">{item.provider || '—'}</td>
+                {productGroup.items.map((item, idx) => (
+                  <tr key={idx}>
+                    <td>{item.batch || 'S/L'}</td>
+                    <td>{item.stock} {abreviar(item.unit)}</td>
+                    <td>{item.provider || '---'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -275,14 +343,17 @@ function ProductDetailModal({ productGroup, categories, onClose, getCategoryById
             </button>
           )}
         </div>
-      </div>
-    </div>
+    </>
   );
 }
 
 export default function Inventory() {
   const { user } = useAuth();
-  const { products, categories, setCategories, addProduct, updateProduct, deleteProduct, importProducts, clearInventory, getCategoryById, calculateSuggestedROP } = useInventory();
+  const { 
+    products, categories, setCategories, addProduct, updateProduct, 
+    deleteProduct, importProducts, clearInventory, getCategoryById, 
+    calculateSuggestedROP, loading 
+  } = useInventory();
   const toast = useToast();
   const importRef = useRef();
   const [search, setSearch] = useState('');
@@ -296,72 +367,104 @@ export default function Inventory() {
   const [viewProductGroup, setViewProductGroup] = useState(null);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
 
-  // Agrupación inteligente con recuperación de errores
-  const groupedProducts = useMemo(() => {
+  const handleNavigate = (direction) => {
+    if (!viewProductGroup || !groupedProducts.length) return;
+    const currentIndex = groupedProducts.findIndex(g => g.id === viewProductGroup.id);
+    let nextIndex = currentIndex + direction;
+    
+    if (nextIndex < 0) nextIndex = groupedProducts.length - 1;
+    if (nextIndex >= groupedProducts.length) nextIndex = 0;
+    
+    setViewProductGroup(groupedProducts[nextIndex]);
+    setSelectedGroupId(groupedProducts[nextIndex].id);
+  };
+
+   // Agrupación inteligente con recuperación de errores
+   const groupedProducts = useMemo(() => {
+     try {
+       const groups = {};
+       const prodsArray = Array.isArray(products) ? products : [];
+       
+       prodsArray.forEach(p => {
+         if (!p) return;
+
+         const name = String(p.name || 'Sin Nombre').trim();
+         const key = name.toLowerCase() || 'default';
+         if (!groups[key]) {
+           groups[key] = { id: key, main: p, totalStock: 0, items: [] };
+         }
+         groups[key].totalStock += (Number(p.stock) || 0);
+         groups[key].items.push(p);
+       });
+
+       const list = Object.values(groups);
+       return list.filter(g => {
+         const p = g.main;
+         if (!p) return false;
+         const name = String(p.name || '').toLowerCase();
+         const sku = String(p.sku || '').toLowerCase();
+         const s = search.toLowerCase();
+         const matchSearch = name.includes(s) || sku.includes(s);
+         const matchCat = !filterCat || String(p.categoryId) === String(filterCat);
+         const matchStatus = !filterStatus || (
+           filterStatus === 'low' ? (g.totalStock || 0) < (p.minStock || 0) : 
+           filterStatus === 'reorder' ? (g.totalStock || 0) >= (p.minStock || 0) && (g.totalStock || 0) <= (p.minStock || 0) * 1.5 :
+           filterStatus === 'ok' ? (g.totalStock || 0) > (p.minStock || 0) * 1.5 :
+           true
+         );
+         return matchSearch && matchCat && matchStatus;
+       });
+     } catch (err) {
+       console.error("Error grouping products:", err);
+       return []; // Fallback seguro
+     }
+   }, [products, search, filterCat, filterStatus]);
+
+  const handleSave = async (data, productToEdit = editProduct) => {
     try {
-      const groups = {};
-      const prodsArray = Array.isArray(products) ? products : [];
-      
-      prodsArray.forEach(p => {
-        if (!p) return;
-        if ((Number(p.stock) || 0) <= 0) return;
-
-        const name = String(p.name || 'Sin Nombre').trim();
-        const key = name.toLowerCase() || 'default';
-        if (!groups[key]) {
-          groups[key] = { id: key, main: p, totalStock: 0, items: [] };
-        }
-        groups[key].totalStock += (Number(p.stock) || 0);
-        groups[key].items.push(p);
-      });
-
-      const list = Object.values(groups);
-      return list.filter(g => {
-        const p = g.main;
-        if (!p) return false;
-        const name = String(p.name || '').toLowerCase();
-        const sku = String(p.sku || '').toLowerCase();
-        const s = search.toLowerCase();
-        const matchSearch = name.includes(s) || sku.includes(s);
-        const matchCat = !filterCat || String(p.categoryId) === String(filterCat);
-        const matchStatus = !filterStatus || (
-          filterStatus === 'low' ? (g.totalStock || 0) < (p.minStock || 0) : 
-          filterStatus === 'reorder' ? (g.totalStock || 0) >= (p.minStock || 0) && (g.totalStock || 0) <= (p.minStock || 0) * 1.5 :
-          filterStatus === 'ok' ? (g.totalStock || 0) > (p.minStock || 0) * 1.5 :
-          true
-        );
-        return matchSearch && matchCat && matchStatus;
-      });
-    } catch (err) {
-      console.error("Error grouping products:", err);
-      return []; // Fallback seguro
-    }
-  }, [products, search, filterCat, filterStatus]);
-
-  const handleSave = (data) => {
-    if (editProduct) {
-      // Si data tiene solo algunos campos (como la imagen), hacemos merge
-      const isQuickImageUpdate = Object.keys(data).length === 1 && data.image;
-      
-      if (isQuickImageUpdate) {
-        // Actualizar imagen para todos los productos con el mismo nombre (todos los lotes)
-        const nameToUpdate = editProduct.name;
-        products.forEach(p => {
-          if (p.name === nameToUpdate) {
-            updateProduct(p.id, { image: data.image });
+      if (productToEdit) {
+        const isQuickImageUpdate = Object.keys(data).length === 1 && data.image;
+        
+        if (isQuickImageUpdate) {
+          const nameToUpdate = productToEdit.name;
+          const updates = products
+            .filter(p => p.name === nameToUpdate)
+            .map(p => updateProduct(p.id, { image: data.image }));
+          
+          await Promise.all(updates);
+          
+          // Actualizar la vista previa inmediata si el modal de detalles está abierto
+          if (viewProductGroup && viewProductGroup.main.name === nameToUpdate) {
+            setViewProductGroup(prev => prev ? ({
+              ...prev,
+              main: { ...prev.main, image: data.image },
+              items: prev.items.map(item => ({ ...item, image: data.image }))
+            }) : null);
           }
-        });
-        toast.success('Imagen actualizada para todos los lotes');
+          
+          toast.success('Imagen actualizada para todos los lotes');
+        } else {
+          await updateProduct(productToEdit.id, data);
+          
+          // Actualizar vista previa si es el mismo producto
+          if (viewProductGroup && viewProductGroup.main.id === productToEdit.id) {
+            setViewProductGroup(prev => prev ? ({
+              ...prev,
+              main: { ...prev.main, ...data }
+            }) : null);
+          }
+          
+          toast.success('Producto / Lote actualizado');
+        }
       } else {
-        updateProduct(editProduct.id, data);
-        toast.success('Producto / Lote actualizado');
+        await addProduct(data);
+        toast.success('Producto creado');
       }
-    } else {
-      addProduct(data);
-      toast.success('Producto creado');
+      setShowModal(false);
+      setEditProduct(null);
+    } catch (err) {
+      toast.error('Error al guardar: ' + err.message);
     }
-    setShowModal(false);
-    setEditProduct(null);
   };
 
   const exportToExcel = () => {
@@ -389,7 +492,7 @@ export default function Inventory() {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
         const data = new Uint8Array(evt.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
@@ -402,13 +505,17 @@ export default function Inventory() {
         const newCats = [...categories];
         let hasNew = false;
 
-        rows.forEach(cols => {
+        // Collect new categories first
+        for (const cols of rows) {
           const catName = String(cols[4] || '').trim();
           if (catName && !newCats.find(c => c.name.toLowerCase() === catName.toLowerCase())) {
-            newCats.push({ id: 'cat-'+Date.now()+Math.random().toString(36).substr(2,4), name: catName, color: '#6366f1' });
-            hasNew = true;
+            const { data: newCat, error } = await supabase.from('categories').insert([{ name: catName, color: '#6366f1' }]).select().single();
+            if (!error) {
+              newCats.push(newCat);
+              hasNew = true;
+            }
           }
-        });
+        }
         if (hasNew) setCategories(newCats);
 
         const newProds = rows.map(cols => {
@@ -417,17 +524,32 @@ export default function Inventory() {
           const category = newCats.find(c => c.name.toLowerCase() === String(catName || '').trim().toLowerCase());
           return {
             sku: String(sku || ''), name: String(name || ''), brand: String(brand || ''), unit: String(unit || 'Unidad'),
-            categoryId: category?.id || '', stock: parseInt(stock) || 0, minStock: parseInt(minStock) || 0,
+            categoryId: category?.id || null, stock: parseInt(stock) || 0, minStock: parseInt(minStock) || 0,
             price: parseFloat(price) || 0, batch: String(batch || ''), provider: String(provider || ''),
-            entryDate: excelDateToJS(entryDate) || '', expiryDate: excelDateToJS(expiryDate) || '', image: null
+            entryDate: excelDateToJS(entryDate) || null, expiryDate: excelDateToJS(expiryDate) || null, image: null
           };
         }).filter(Boolean);
-        if (newProds.length) { importProducts(newProds); toast.success(`${newProds.length} productos importados`); }
-      } catch (err) { toast.error('Error al importar'); }
+        
+        if (newProds.length) { 
+          await importProducts(newProds); 
+          toast.success(`${newProds.length} productos importados`); 
+        }
+      } catch (err) { 
+        toast.error('Error al importar: ' + err.message); 
+      }
       e.target.value = '';
     };
     reader.readAsArrayBuffer(file);
   };
+
+  if (loading) {
+    return (
+      <div className="flex-center" style={{ height: '60vh', flexDirection: 'column', gap: '20px' }}>
+        <div className="spinner" />
+        <p className="text-muted">Cargando inventario desde la nube...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade">
@@ -443,10 +565,14 @@ export default function Inventory() {
               <button 
                 className="btn btn-ghost btn-danger-hover" 
                 style={{ color: 'var(--danger)', borderColor: 'hsla(0, 72%, 51%, 0.2)' }}
-                onClick={() => {
+                onClick={async () => {
                   if (confirm('¿Estás totalmente seguro de VACIAR TODO el inventario? Esta acción eliminará todos los productos y movimientos registrados y NO se puede deshacer.')) {
-                    clearInventory();
-                    toast.success('Inventario vaciado por completo');
+                    try {
+                      await clearInventory();
+                      toast.success('Inventario vaciado por completo');
+                    } catch (err) {
+                      toast.error('Error al vaciar inventario');
+                    }
                   }
                 }}
               >
@@ -592,16 +718,55 @@ export default function Inventory() {
       )}
 
       {viewProductGroup && (
-        <ProductDetailModal 
-          productGroup={viewProductGroup} 
-          categories={categories}
-          onClose={() => setViewProductGroup(null)}
-          getCategoryById={getCategoryById}
-          calculateSuggestedROP={calculateSuggestedROP}
-          canManage={canManage}
-          onEdit={(p) => { setEditProduct(p); setShowModal(true); setViewProductGroup(null); }}
-          onDelete={(p) => { if (confirm('¿Eliminar este lote?')) { deleteProduct(p.id); setViewProductGroup(null); } }}
-        />
+        <div className="modal-overlay" onClick={() => setViewProductGroup(null)}>
+          <div className="modal modal-lg animate-slide" onClick={(e) => e.stopPropagation()}>
+            {/* Botones de Navegación Internos */}
+            <button 
+              className="nav-arrow prev" 
+              onClick={(e) => { e.stopPropagation(); handleNavigate(-1); }}
+              title="Anterior (←)"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <button 
+              className="nav-arrow next" 
+              onClick={(e) => { e.stopPropagation(); handleNavigate(1); }}
+              title="Siguiente (→)"
+            >
+              <ChevronRight size={24} />
+            </button>
+
+            <ProductDetailModal 
+              productGroup={viewProductGroup} 
+              categories={categories}
+              onClose={() => setViewProductGroup(null)}
+              getCategoryById={getCategoryById}
+              calculateSuggestedROP={calculateSuggestedROP}
+              canManage={canManage}
+              onNavigate={handleNavigate}
+              onEdit={(p, updates) => { 
+                if (updates) {
+                  handleSave(updates, p);
+                } else {
+                  setEditProduct(p); 
+                  setShowModal(true); 
+                  setViewProductGroup(null); 
+                }
+              }}
+              onDelete={async (p) => { 
+                if (confirm('¿Eliminar este lote?')) { 
+                  try {
+                    await deleteProduct(p.id); 
+                    setViewProductGroup(null); 
+                    toast.success('Producto eliminado');
+                  } catch (err) {
+                    toast.error('Error al eliminar');
+                  }
+                } 
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

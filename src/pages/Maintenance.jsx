@@ -1,18 +1,63 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useToast } from '../context/ToastContext';
+import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
+import * as LucideIcons from 'lucide-react';
 import { 
   Settings, Database, RefreshCw, Trash2, Download, Upload,
-  ShieldAlert, CheckCircle2, History, AlertTriangle 
+  ShieldAlert, CheckCircle2, History, AlertTriangle, Palette, Type, X, Users
 } from 'lucide-react';
 import './Maintenance.css';
 
 export default function Maintenance() {
   const { products, movements, categories, suppliers, setProducts, setMovements, setCategories, setSuppliers, clearInventory } = useInventory();
+  const { settings, updateSetting } = useSettings();
+  const { seedDemoUsers } = useAuth();
   const toast = useToast();
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
+  const [brandingForm, setBrandingForm] = useState({ ...settings });
+  const [isSaving, setIsSaving] = useState(false);
   const restoreRef = useRef();
+  const logoInputRef = useRef();
+
+  // Sync form when settings load
+  useEffect(() => {
+    setBrandingForm({ ...settings });
+  }, [settings]);
+
+  const handleSaveBranding = async () => {
+    try {
+      setIsSaving(true);
+      // Actualizar cada setting en Supabase
+      await Promise.all([
+        updateSetting('appName', brandingForm.appName),
+        updateSetting('appIcon', brandingForm.appIcon),
+        updateSetting('primaryColor', brandingForm.primaryColor),
+        updateSetting('appLogoUrl', brandingForm.appLogoUrl)
+      ]);
+      toast.success('Cambios de marca guardados con éxito');
+    } catch (error) {
+      toast.error('Error al guardar: ' + error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 500000) { 
+      toast.error('La imagen es muy pesada. Máximo 500KB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setBrandingForm(prev => ({ ...prev, appLogoUrl: event.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   // 1. Diagnóstico de Integridad
   const runDiagnostic = () => {
@@ -138,6 +183,111 @@ export default function Maintenance() {
       </div>
 
       <div className="maintenance-grid">
+        {/* Personalización de Marca */}
+        <div className="card branding-panel">
+          <div className="panel-header">
+            <Palette size={20} className="text-primary" />
+            <h2>Personalización de Marca</h2>
+          </div>
+          <div className="branding-content" style={{ marginTop: '20px' }}>
+            <div className="input-group mb-16" style={{ marginBottom: '16px' }}>
+              <label className="input-label">Nombre de la Aplicación</label>
+              <div className="search-bar">
+                <Type size={16} className="text-muted" />
+                <input 
+                  value={brandingForm.appName} 
+                  onChange={e => setBrandingForm(prev => ({ ...prev, appName: e.target.value }))}
+                  placeholder="Ej: StockPro"
+                />
+              </div>
+            </div>
+
+            <div className="input-group mb-16" style={{ marginBottom: '16px' }}>
+              <label className="input-label">Icono del Sistema</label>
+              <div className="icon-selector" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                {['Boxes', 'Package', 'Warehouse', 'LayoutGrid', 'Cpu', 'Activity', 'Shield'].map(iconName => {
+                  const Icon = LucideIcons[iconName] || LucideIcons.HelpCircle;
+                  const isSelected = !brandingForm.appLogoUrl && brandingForm.appIcon === iconName;
+                  return (
+                    <button 
+                      key={iconName}
+                      type="button"
+                      className={`btn btn-icon ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
+                      onClick={() => {
+                        setBrandingForm(prev => ({ ...prev, appIcon: iconName, appLogoUrl: null }));
+                      }}
+                      title={iconName}
+                      style={{ padding: '8px' }}
+                    >
+                      <Icon size={18} />
+                    </button>
+                  );
+                })}
+
+                <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 4px' }} />
+
+                {brandingForm.appLogoUrl ? (
+                  <div style={{ position: 'relative' }}>
+                    <img src={brandingForm.appLogoUrl} alt="Logo" style={{ width: '36px', height: '36px', borderRadius: '4px', objectFit: 'contain', background: 'var(--bg-secondary)', padding: '4px' }} />
+                    <button 
+                      type="button"
+                      className="btn-icon" 
+                      onClick={() => setBrandingForm(prev => ({ ...prev, appLogoUrl: null }))}
+                      style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--danger)', color: 'white', padding: '2px', borderRadius: '50%', display: 'flex' }}
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    type="button"
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => logoInputRef.current.click()}
+                  >
+                    <Upload size={14} /> Subir Logo
+                  </button>
+                )}
+                <input 
+                  type="file" 
+                  ref={logoInputRef} 
+                  style={{ display: 'none' }} 
+                  accept="image/*" 
+                  onChange={handleLogoUpload} 
+                />
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Color Principal (Tema)</label>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <input 
+                  type="color" 
+                  value={brandingForm.primaryColor} 
+                  onChange={e => setBrandingForm(prev => ({ ...prev, primaryColor: e.target.value }))}
+                  style={{ width: '40px', height: '40px', padding: '0', border: 'none', background: 'none', cursor: 'pointer' }}
+                />
+                <code style={{ background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px' }}>{brandingForm.primaryColor}</code>
+              </div>
+            </div>
+            
+            <div className="divider"></div>
+            
+            <div className="flex justify-between items-center mt-20">
+              <p className="text-muted" style={{ fontSize: '11px', maxWidth: '180px' }}>
+                <AlertTriangle size={10} /> Los cambios se guardan permanentemente en la nube.
+              </p>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleSaveBranding}
+                disabled={isSaving}
+              >
+                {isSaving ? <RefreshCw size={16} className="spinner" /> : <Settings size={16} />}
+                <span>{isSaving ? 'Guardando...' : 'Guardar Cambios'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Panel de Salud */}
         <div className="card health-panel">
           <div className="panel-header">

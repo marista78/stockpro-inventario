@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import { v4 as uuidv4 } from 'uuid';
 
 const AuthContext = createContext(null);
-
-const STORAGE_KEY = 'sp_users';
 
 const DEFAULT_PERMISSIONS = {
   inventory: true,
@@ -10,35 +10,9 @@ const DEFAULT_PERMISSIONS = {
   suppliers: true,
   movements: true,
   reports: true,
-  ai: true
+  scanner: true,
+  ia: true
 };
-
-const INITIAL_USERS = [
-  { 
-    id: '1', 
-    email: 'admin@stockpro.com', 
-    password: 'admin123', 
-    name: 'Martin Arista', 
-    role: 'admin', 
-    createdAt: new Date().toISOString(),
-    permissions: { ...DEFAULT_PERMISSIONS }
-  },
-  { 
-    id: '2', 
-    email: 'demo@demo.com', 
-    password: 'demo123', 
-    name: 'Usuario Demo', 
-    role: 'user', 
-    createdAt: new Date().toISOString(),
-    permissions: { 
-      inventory: true,
-      categories: true,
-      suppliers: false,
-      movements: true,
-      reports: true
-    }
-  },
-];
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -46,108 +20,183 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Cargar base de datos de usuarios primero
-    const savedUsers = localStorage.getItem(STORAGE_KEY);
-    let currentUsers = INITIAL_USERS;
-    if (savedUsers) {
-      currentUsers = JSON.parse(savedUsers);
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_USERS));
-    }
-    setUsers(currentUsers);
-
-    // Cargar sesión y asegurar que tenga ID y permisos
-    const savedUser = localStorage.getItem('sp_user');
-    if (savedUser) {
-      let parsed = JSON.parse(savedUser);
-      const dbUser = currentUsers.find(u => u.email === parsed.email);
-      
-      if (dbUser) {
-        parsed = { 
-          ...parsed, 
-          id: dbUser.id, 
-          role: dbUser.role,
-          permissions: dbUser.permissions || { ...DEFAULT_PERMISSIONS }
-        };
-        localStorage.setItem('sp_user', JSON.stringify(parsed));
+    // Check session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        fetchProfile(session.user);
+      } else {
+        // Fallback for demo mode: check localStorage for a session
+        const savedUser = localStorage.getItem('demo_user');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+        }
+        setLoading(false);
       }
-      setUser(parsed);
-    }
-    setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        fetchProfile(session.user);
+      } else {
+        const savedUser = localStorage.getItem('demo_user');
+        if (!savedUser) setUser(null);
+      }
+    });
+
+    fetchUsers();
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = (email, password) => {
-    const found = users.find(u => u.email === email && u.password === password);
-    if (!found) throw new Error('Credenciales incorrectas');
-    const userData = { 
-      id: found.id, 
-      email: found.email, 
-      name: found.name, 
-      role: found.role,
-      permissions: found.permissions || { ...DEFAULT_PERMISSIONS }
-    };
-    setUser(userData);
-    localStorage.setItem('sp_user', JSON.stringify(userData));
-    return userData;
+  const fetchUsers = async () => {
+    const { data, error } = await supabase.from('users').select('*');
+    if (!error) {
+      setUsers((data || []).map(u => ({
+        ...u,
+        createdAt: u.created_at
+      })));
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('sp_user');
+  const fetchProfile = async (authUser) => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', authUser.email)
+      .single();
+    
+    if (data) {
+      const userData = {
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        permissions: data.permissions || { ...DEFAULT_PERMISSIONS },
+        createdAt: data.created_at
+      };
+      setUser(userData);
+    }
+    setLoading(false);
   };
 
-  // Gestión de Usuarios
-  const addUser = (userData) => {
-    // Validar email duplicado
-    if (users.some(u => u.email === userData.email)) {
-      throw new Error('Este correo electrónico ya está registrado');
+  const login = async (email, password) => {
+    // 1. Try Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (!authError) return authData;
+
+    // 2. Try Public Users Table (Demo Mode)
+    const { data: profileData, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .eq('password', password)
+      .single();
+    
+    if (profileData) {
+      const userData = {
+        id: profileData.id,
+        email: profileData.email,
+        name: profileData.name,
+        role: profileData.role,
+        permissions: profileData.permissions || { ...DEFAULT_PERMISSIONS }
+      };
+      setUser(userData);
+      localStorage.setItem('demo_user', JSON.stringify(userData));
+      return { user: userData };
     }
 
+    throw authError || profileError || new Error('Credenciales incorrectas');
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem('demo_user');
+    setUser(null);
+  };
+
+  const addUser = async (userData) => {
     const newUser = {
       ...userData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      permissions: userData.permissions || { ...DEFAULT_PERMISSIONS }
+      id: userData.id || uuidv4(),
+      permissions: userData.permissions || { ...DEFAULT_PERMISSIONS },
+      created_at: new Date().toISOString()
     };
-    setUsers(prev => {
-      const next = [...prev, newUser];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
+    const { data, error } = await supabase.from('users').insert([newUser]).select().single();
+    if (error) throw error;
+    fetchUsers();
+    return data;
   };
 
-  const updateUser = (id, updates) => {
-    // Validar email duplicado si se está cambiando
-    if (updates.email && users.some(u => u.email === updates.email && u.id !== id)) {
-      throw new Error('Este correo electrónico ya está en uso por otro usuario');
-    }
-
-    setUsers(prev => {
-      const next = prev.map(u => u.id === id ? { ...u, ...updates } : u);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
+  const updateUser = async (id, updates) => {
+    const { data, error } = await supabase.from('users').update(updates).eq('id', id).select().single();
+    if (error) throw error;
     
-    // Actualizar sesión si es el usuario actual
-    setUser(prev => {
-      if (prev && prev.id === id) {
-        const updated = { ...prev, ...updates };
-        // No guardar el password en la sesión del localStorage por seguridad
-        const { password, ...sessionData } = updated;
-        localStorage.setItem('sp_user', JSON.stringify(sessionData));
-        return updated;
+    fetchUsers();
+    if (user && user.id === id) {
+      const updatedUser = { ...user, ...data };
+      setUser(updatedUser);
+      if (localStorage.getItem('demo_user')) {
+        localStorage.setItem('demo_user', JSON.stringify(updatedUser));
       }
-      return prev;
-    });
+    }
+    return data;
   };
 
-  const deleteUser = (id) => {
+  const deleteUser = async (id) => {
     if (user && user.id === id) throw new Error('No puedes eliminar tu propia cuenta');
-    setUsers(prev => {
-      const next = prev.filter(u => u.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
+    const { error } = await supabase.from('users').delete().eq('id', id);
+    if (error) throw error;
+    fetchUsers();
+  };
+
+  const seedDemoUsers = async () => {
+    const demoUsers = [
+      {
+        id: uuidv4(),
+        name: 'Admin Demo',
+        email: 'admin@demo.com',
+        password: 'demo',
+        role: 'admin',
+        permissions: { ...DEFAULT_PERMISSIONS }
+      },
+      {
+        id: uuidv4(),
+        name: 'Vendedor Demo',
+        email: 'ventas@demo.com',
+        password: 'demo',
+        role: 'user',
+        permissions: { ...DEFAULT_PERMISSIONS, categories: false, suppliers: false }
+      },
+      {
+        id: uuidv4(),
+        name: 'Logística Demo',
+        email: 'logistica@demo.com',
+        password: 'demo',
+        role: 'user',
+        permissions: { ...DEFAULT_PERMISSIONS, reports: false }
+      },
+      {
+        id: uuidv4(),
+        name: 'Invitado Demo',
+        email: 'invitado@demo.com',
+        password: 'demo',
+        role: 'user',
+        permissions: { ...DEFAULT_PERMISSIONS, movements: false, ia: false }
+      },
+      {
+        id: uuidv4(),
+        name: 'Supervisor Demo',
+        email: 'supervisor@demo.com',
+        password: 'demo',
+        role: 'user',
+        permissions: { ...DEFAULT_PERMISSIONS, scanner: true }
+      }
+    ];
+
+    for (const u of demoUsers) {
+      await supabase.from('users').upsert(u, { onConflict: 'email' });
+    }
+    fetchUsers();
   };
 
   return (
@@ -159,7 +208,9 @@ export function AuthProvider({ children }) {
       logout,
       addUser,
       updateUser,
-      deleteUser
+      deleteUser,
+      seedDemoUsers,
+      refreshUsers: fetchUsers
     }}>
       {children}
     </AuthContext.Provider>

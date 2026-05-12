@@ -9,8 +9,8 @@
   gap: 24px;
 }
 
-/* Panel de Salud */
-.health-panel {
+/* Paneles Superiores */
+.branding-panel, .health-panel {
   display: flex;
   flex-direction: column;
   min-height: 450px;
@@ -81,8 +81,9 @@
 
 /* Herramientas de Datos */
 .tools-section {
-  display: flex;
-  flex-direction: column;
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
@@ -137,8 +138,17 @@
   to { transform: rotate(360deg); }
 }
 
+@media (max-width: 1024px) {
+  .tools-section {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .maintenance-grid {
     grid-template-columns: 1fr;
+  }
+  .tools-section {
+    grid-column: span 1;
   }
 }
