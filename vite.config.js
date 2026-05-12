@@ -28,11 +28,9 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      disable: mode === 'development',
       devOptions: {
         enabled: false
       },
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
         name: 'StockPro — Gestión de Inventario',
         short_name: 'StockPro',
@@ -57,49 +55,11 @@ export default defineConfig(({ mode }) => ({
             type: 'image/png',
             purpose: 'any maskable'
           }
-        ],
-        shortcuts: [
-          {
-            name: 'Inventario',
-            url: '/inventario',
-            description: 'Ver lista de productos'
-          },
-          {
-            name: 'Movimientos',
-            url: '/movimientos',
-            description: 'Registrar entrada o salida'
-          },
-          {
-            name: 'Escáner QR',
-            url: '/escaner',
-            description: 'Escanear código QR'
-          }
-        ],
-        categories: ['business', 'productivity']
+        ]
       },
       workbox: {
         globPatterns: ['**/*.{css,html,ico,png,svg,woff2}'],
-        maximumFileSizeToCacheInBytes: 5242880,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] }
-            }
-          }
-        ]
+        maximumFileSizeToCacheInBytes: 5242880
       }
     })
   ],
