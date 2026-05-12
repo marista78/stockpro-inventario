@@ -7,10 +7,19 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 3000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          charts: ['recharts'],
-          supabase: ['@supabase/supabase-js'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'vendor';
+            }
+            if (id.includes('recharts')) {
+              return 'charts';
+            }
+            if (id.includes('@supabase/supabase-js')) {
+              return 'supabase';
+            }
+            return 'vendor-others';
+          }
         }
       }
     }
