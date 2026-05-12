@@ -2,11 +2,15 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      disable: mode === 'development',
+      devOptions: {
+        enabled: false
+      },
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
         name: 'StockPro — Gestión de Inventario',
@@ -54,6 +58,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globIgnores: ['**/node_modules/**/*'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -74,10 +79,7 @@ export default defineConfig({
             }
           }
         ]
-      },
-      jsdevOptions: {
-        enabled: false
       }
     })
   ],
-})
+}))
