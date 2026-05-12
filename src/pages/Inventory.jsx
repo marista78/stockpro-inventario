@@ -83,7 +83,22 @@ function ProductModal({ product, categories, onSave, onClose, calculateSuggested
                   <input className="input" value={form.name} onChange={e => set('name', e.target.value)} required placeholder="Ej: Monitor LED 24" />
                 </div>
                 <div className="input-group">
-                  <label className="input-label">SKU / Código *</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label className="input-label">SKU / Código *</label>
+                    <button 
+                      type="button" 
+                      className="text-primary fw-600" 
+                      style={{ fontSize: '11px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                      onClick={() => {
+                        const category = categories.find(c => c.id === form.categoryId);
+                        const prefix = category ? category.name.substring(0, 3).toUpperCase() : 'SKU';
+                        const random = Math.floor(1000 + Math.random() * 9000);
+                        set('sku', `${prefix}-${random}`);
+                      }}
+                    >
+                      Generar automático
+                    </button>
+                  </div>
                   <input className="input" value={form.sku} onChange={e => set('sku', e.target.value)} required placeholder="Ej: MON-001" />
                 </div>
               </div>
