@@ -78,8 +78,7 @@ export default defineConfig(({ mode }) => ({
         categories: ['business', 'productivity']
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        globIgnores: ['**/node_modules/**/*'],
+        globPatterns: ['**/*.{css,html,ico,png,svg,woff2}'],
         maximumFileSizeToCacheInBytes: 5242880,
         runtimeCaching: [
           {
