@@ -3,6 +3,18 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig(({ mode }) => ({
+  build: {
+    chunkSizeWarningLimit: 3000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          charts: ['recharts'],
+          supabase: ['@supabase/supabase-js'],
+        }
+      }
+    }
+  },
   plugins: [
     react(),
     VitePWA({
