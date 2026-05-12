@@ -76,8 +76,8 @@ export function InventoryProvider({ children }) {
     price: p.price,
     image_url: p.image || p.imageUrl,
     batch: p.batch,
-    expiry_date: p.expiryDate,
-    entry_date: p.entryDate,
+    expiry_date: p.expiryDate || null,
+    entry_date: p.entryDate || null,
     provider: p.provider
   });
 
