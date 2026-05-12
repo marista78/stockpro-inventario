@@ -31,6 +31,7 @@ export default defineConfig(({ mode }) => ({
       devOptions: {
         enabled: false
       },
+      selfDestroying: true,
       manifest: {
         name: 'StockPro — Gestión de Inventario',
         short_name: 'StockPro',
