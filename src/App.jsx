@@ -3,7 +3,6 @@ import { AuthProvider } from './context/AuthContext';
 import { InventoryProvider } from './context/InventoryContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { ToastProvider } from './context/ToastContext';
-import InstallBanner from './components/InstallBanner';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -27,7 +26,6 @@ export default function App() {
         <SettingsProvider>
           <InventoryProvider>
           <ToastProvider>
-            <InstallBanner />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route element={<Layout />}>
