@@ -100,32 +100,34 @@ export default function Sidebar() {
               <Icon size={18} />
               <span>{label}</span>
               {label === 'Inventario' && (
-                <>
-                  {(lowStockProducts || []).length > 0 ? (
+                <div className="sidebar-badges">
+                  {(lowStockProducts || []).length > 0 && (
                     <span className="sidebar-badge">
                       <AlertTriangle size={11} />
                       {(lowStockProducts || []).length}
                     </span>
-                  ) : (reorderProducts || []).length > 0 ? (
+                  )}
+                  {(reorderProducts || []).length > 0 && (
                     <span className="sidebar-badge warning">
                       <AlertTriangle size={11} />
                       {(reorderProducts || []).length}
                     </span>
-                  ) : null}
-                </>
+                  )}
+                </div>
               )}
               {label === 'Reportes' && (
-                <>
-                  {(lowStockProducts || []).length > 0 ? (
+                <div className="sidebar-badges">
+                  {(lowStockProducts || []).length > 0 && (
                     <span className="sidebar-badge">
                       <AlertTriangle size={11} />
                     </span>
-                  ) : (reorderProducts || []).length > 0 ? (
+                  )}
+                  {(reorderProducts || []).length > 0 && (
                     <span className="sidebar-badge warning">
                       <AlertTriangle size={11} />
                     </span>
-                  ) : null}
-                </>
+                  )}
+                </div>
               )}
             </NavLink>
           ))}
