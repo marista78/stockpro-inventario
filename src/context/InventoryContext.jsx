@@ -442,7 +442,11 @@ export function InventoryProvider({ children }) {
       if (!groups[key]) groups[key] = { ...p, totalStock: 0 };
       groups[key].totalStock += Number(p.stock || 0);
     });
-    return Object.values(groups).filter(p => p.totalStock >= p.minStock && p.totalStock <= p.minStock * 1.5);
+    return Object.values(groups).filter(p => {
+      const total = p.totalStock || 0;
+      const min = p.minStock || 0;
+      return min > 0 && total >= min && total <= min * 1.5;
+    });
   }, [products]);
 
   const totalValue = useMemo(() => products.reduce((sum, p) => sum + ((p.price || 0) * (p.stock || 0)), 0), [products]);
