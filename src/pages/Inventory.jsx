@@ -577,22 +577,6 @@ export default function Inventory() {
           <button className="btn btn-secondary" onClick={exportToExcel}><Download size={16} /> Exportar</button>
           {canManage && (
             <>
-              <button 
-                className="btn btn-ghost btn-danger-hover" 
-                style={{ color: 'var(--danger)', borderColor: 'hsla(0, 72%, 51%, 0.2)' }}
-                onClick={async () => {
-                  if (confirm('¿Estás totalmente seguro de VACIAR TODO el inventario? Esta acción eliminará todos los productos y movimientos registrados y NO se puede deshacer.')) {
-                    try {
-                      await clearInventory();
-                      toast.success('Inventario vaciado por completo');
-                    } catch (err) {
-                      toast.error('Error al vaciar inventario');
-                    }
-                  }
-                }}
-              >
-                <Trash2 size={16} /> Vaciar Inventario
-              </button>
               <button className="btn btn-secondary" onClick={() => importRef.current.click()}><Upload size={16} /> Importar</button>
               <button className="btn btn-primary" onClick={() => { setEditProduct(null); setShowModal(true); }}><Plus size={16} /> Nuevo Producto</button>
             </>

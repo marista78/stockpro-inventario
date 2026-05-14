@@ -374,14 +374,14 @@ export default function Maintenance() {
           <div className="card tool-card danger-zone">
             <div className="tool-icon bg-danger-glow"><Trash2 size={20} className="text-danger" /></div>
             <div className="tool-info">
-              <h3 className="text-danger">Reinicio de Fábrica</h3>
-              <p>Borra absolutamente todos los datos: productos, categorías, proveedores y movimientos.</p>
+              <h3 className="text-danger">Vaciar Inventario (Borrado Total)</h3>
+              <p>Elimina absolutamente todos los datos: productos, categorías, proveedores y movimientos. Esta acción NO se puede deshacer.</p>
               <button className="btn btn-danger btn-sm" onClick={() => {
-                if (window.confirm('ADVERTENCIA: ¿Estás seguro? Se borrará TODO el sistema. Esta acción no se puede deshacer.')) {
+                if (window.confirm('¿Estás totalmente seguro de VACIAR TODO el inventario? Esta acción eliminará todos los productos y movimientos registrados y NO se puede deshacer.')) {
                   clearInventory();
-                  toast.success('Sistema reiniciado correctamente');
+                  toast.success('Inventario vaciado por completo');
                 }
-              }}>Borrar Todo</button>
+              }}>Vaciar Inventario</button>
             </div>
           </div>
         </div>
