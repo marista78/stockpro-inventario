@@ -87,7 +87,7 @@ function ProductModal({ product, categories, onSave, onClose, calculateSuggested
                     <label className="input-label">SKU / Código *</label>
                     <button 
                       type="button" 
-                      className="text-primary fw-600" 
+                      className="text-primary fw-600 sku-gen-btn" 
                       style={{ fontSize: '11px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                       onClick={() => {
                         const category = categories.find(c => c.id === form.categoryId);

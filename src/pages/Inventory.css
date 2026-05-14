@@ -265,3 +265,18 @@
 .batches-table-mini tr:last-child td {
   border-bottom: none;
 }
+
+.sku-gen-btn {
+  transition: all 0.2s ease;
+  opacity: 0.9;
+}
+
+.sku-gen-btn:hover {
+  color: var(--primary-light) !important;
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.sku-gen-btn:active {
+  transform: scale(0.95);
+}
