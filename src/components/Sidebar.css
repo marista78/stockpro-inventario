@@ -53,6 +53,9 @@
   padding: 2px 7px; border-radius: 100px;
   animation: pulse 2s infinite;
 }
+.sidebar-badge.warning {
+  background: var(--warning);
+}
 
 .sidebar-footer {
   padding: 14px 10px; border-top: 1px solid var(--border);

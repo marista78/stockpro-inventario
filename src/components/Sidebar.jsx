@@ -24,7 +24,7 @@ const NAV = [
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
-  const { lowStockProducts } = useInventory();
+  const { lowStockProducts, reorderProducts } = useInventory();
   const { settings } = useSettings();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -99,11 +99,33 @@ export default function Sidebar() {
             >
               <Icon size={18} />
               <span>{label}</span>
-              {label === 'Inventario' && (lowStockProducts || []).length > 0 && (
-                <span className="sidebar-badge">
-                  <AlertTriangle size={11} />
-                  {(lowStockProducts || []).length}
-                </span>
+              {label === 'Inventario' && (
+                <>
+                  {(lowStockProducts || []).length > 0 ? (
+                    <span className="sidebar-badge">
+                      <AlertTriangle size={11} />
+                      {(lowStockProducts || []).length}
+                    </span>
+                  ) : (reorderProducts || []).length > 0 ? (
+                    <span className="sidebar-badge warning">
+                      <AlertTriangle size={11} />
+                      {(reorderProducts || []).length}
+                    </span>
+                  ) : null}
+                </>
+              )}
+              {label === 'Reportes' && (
+                <>
+                  {(lowStockProducts || []).length > 0 ? (
+                    <span className="sidebar-badge">
+                      <AlertTriangle size={11} />
+                    </span>
+                  ) : (reorderProducts || []).length > 0 ? (
+                    <span className="sidebar-badge warning">
+                      <AlertTriangle size={11} />
+                    </span>
+                  ) : null}
+                </>
               )}
             </NavLink>
           ))}
