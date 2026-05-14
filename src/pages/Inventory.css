@@ -268,11 +268,12 @@
 
 .sku-gen-btn {
   transition: all 0.2s ease;
-  opacity: 0.9;
+  color: white !important;
+  opacity: 0.8;
 }
 
 .sku-gen-btn:hover {
-  color: var(--primary-light) !important;
+  color: white !important;
   opacity: 1;
   text-decoration: underline;
 }
