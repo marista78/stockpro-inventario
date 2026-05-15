@@ -251,14 +251,31 @@ export function InventoryProvider({ children }) {
     if (!product) throw new Error('Producto no encontrado');
     
     const currentStock = Number(product.stock || 0);
+    const currentPrice = Number(product.price || 0);
     const movQty = Number(mov.quantity || 0);
-    const newQty = mov.type === 'entrada' ? currentStock + movQty : currentStock - movQty;
+    const movPrice = Number(mov.purchasePrice || 0);
     
-    if (newQty < 0) throw new Error('Stock insuficiente');
+    let newQty = currentStock;
+    let newPrice = currentPrice;
+
+    if (mov.type === 'entrada') {
+      newQty = currentStock + movQty;
+      // Cálculo de Precio Promedio Ponderado (PPP)
+      if (newQty > 0) {
+        newPrice = ((currentStock * currentPrice) + (movQty * movPrice)) / newQty;
+      } else {
+        newPrice = movPrice;
+      }
+    } else {
+      newQty = Math.max(0, currentStock - movQty);
+    }
     
     const { error: prodError } = await supabase
       .from('products')
-      .update({ stock: newQty })
+      .update({ 
+        stock: newQty,
+        price: newPrice 
+      })
       .eq('id', mov.productId);
       
     if (prodError) throw prodError;
@@ -278,7 +295,7 @@ export function InventoryProvider({ children }) {
     if (movError) throw movError;
 
     const mappedMov = { ...movData, productId: movData.product_id, productName: movData.product_name };
-    setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: newQty } : p));
+    setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: newQty, price: newPrice } : p));
     setMovements(prev => [mappedMov, ...prev]);
     return mappedMov;
   }, [products]);

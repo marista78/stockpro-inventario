@@ -233,6 +233,23 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                     </div>
                   </div>
 
+                  {form.type === 'entrada' && (
+                    <div className="input-group mt-16">
+                      <label className="input-label">Precio Unitario de Ingreso (S/) *</label>
+                      <input 
+                        className="input" 
+                        type="number" 
+                        step="0.01" 
+                        value={form.newBatchPrice} 
+                        onChange={e => set('newBatchPrice', e.target.value)} 
+                        placeholder={selectedProductBase?.price || "0.00"} 
+                      />
+                      <p className="fs-10 text-muted mt-4">
+                        El sistema recalculará el precio promedio del producto automáticamente.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="auto-summary-box mt-20">
                     <div className="preview-label mb-12">RESUMEN AUTOMÁTICO</div>
                     <div className="summary-row"><span>Cantidad</span><span className="fw-700">{form.quantity || 0}</span></div>
@@ -308,7 +325,6 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                     <div className="grid-2">
                       <div className="input-group mb-0"><label className="input-label">Código *</label><input className="input" value={form.newBatchCode} onChange={e => set('newBatchCode', e.target.value)} /></div>
                       <div className="input-group mb-0"><label className="input-label">Proveedor *</label><select className="input" value={form.newBatchProvider} onChange={e => set('newBatchProvider', e.target.value)}><option value="">Sel...</option>{suppliers.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}</select></div>
-                      <div className="input-group mb-0"><label className="input-label">Precio *</label><input className="input" type="number" value={form.newBatchPrice} onChange={e => set('newBatchPrice', e.target.value)} /></div>
                     </div>
                   )}
                 </div>
