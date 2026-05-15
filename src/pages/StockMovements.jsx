@@ -502,7 +502,7 @@ export default function StockMovements() {
           <h1 className="page-title">Movimientos de Stock</h1>
           <p className="page-subtitle">{movements.length} operaciones registradas con trazabilidad avanzada</p>
         </div>
-        <div className="flex" style={{ gap: '16px' }}>
+        <div className="flex" style={{ gap: '30px', alignItems: 'center' }}>
           <button className="btn btn-secondary" onClick={() => {
             const headers = ['Fecha', 'SKU', 'Producto', 'Cantidad', 'Tipo', 'Lote', 'Motivo', 'Responsable', 'Observaciones'];
             const rows = sortedMovements.map(m => {
@@ -534,7 +534,7 @@ export default function StockMovements() {
         </div>
       </div>
 
-      <div className="inv-filters filter-bar mb-16" style={{ gap: '20px' }}>
+      <div className="inv-filters filter-bar mb-16" style={{ gap: '30px' }}>
         <div className="search-bar" style={{ flex: 1 }}>
           <Search size={16} style={{ color: 'var(--text-subtle)', flexShrink: 0 }} />
           <input placeholder="Buscar por producto, lote o motivo..." value={search} onChange={e => setSearch(e.target.value)} />
