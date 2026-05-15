@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { Download, BarChart3, Filter, Calendar, AlertCircle, TrendingUp, TrendingDown, Package, Inbox } from 'lucide-react';
 import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es } from 'date-fns/locale/es';
 import * as XLSX from 'xlsx';
 import './Reports.css';
 
@@ -571,9 +571,9 @@ export default function Reports() {
                     </tr>
                   );
                 })}
-                {consolidatedProducts.filter(p => p.totalStock > 0 && (p.dailyDemand || 0) === 0).length === 0 && (
+                {consolidatedProducts.filter(p => p.totalStock > 0 && !p.hasRotation30).length === 0 && (
                   <tr>
-                    <td colSpan="6" className="text-center py-20 text-muted">No se detectó stock inmovilizado en este periodo</td>
+                    <td colSpan="7" className="text-center py-20 text-muted">No se detectó stock inmovilizado en este periodo</td>
                   </tr>
                 )}
               </tbody>
