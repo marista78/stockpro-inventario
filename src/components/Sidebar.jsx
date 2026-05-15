@@ -143,10 +143,12 @@ export default function Sidebar() {
               <span className="sidebar-user-email">{user?.email}</span>
             </div>
           </div>
-          <button className="sidebar-logout btn btn-ghost btn-icon tooltip-wrap" onClick={handleLogout}>
-            <LogOut size={17} />
-            <span className="tooltip">Cerrar sesión</span>
-          </button>
+          {!user?.isDefault && (
+            <button className="sidebar-logout btn btn-ghost btn-icon tooltip-wrap" onClick={handleLogout}>
+              <LogOut size={17} />
+              <span className="tooltip">Cerrar sesión</span>
+            </button>
+          )}
           {user?.role?.toLowerCase() === 'admin' && (
             <button className="sidebar-logout btn btn-ghost btn-icon tooltip-wrap" onClick={handleReset} style={{ color: 'var(--text-subtle)' }}>
               <Settings size={17} />

@@ -14,6 +14,15 @@ const DEFAULT_PERMISSIONS = {
   ia: true
 };
 
+const DEFAULT_ADMIN_USER = {
+  id: 'admin-default',
+  email: 'admin@stockpro.com',
+  name: 'Administrador',
+  role: 'admin',
+  permissions: { ...DEFAULT_PERMISSIONS },
+  isDefault: true
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [users, setUsers] = useState([]);
@@ -29,6 +38,9 @@ export function AuthProvider({ children }) {
         const savedUser = localStorage.getItem('demo_user');
         if (savedUser) {
           setUser(JSON.parse(savedUser));
+        } else {
+          // AUTO-LOGIN: If no session, use the default admin user
+          setUser(DEFAULT_ADMIN_USER);
         }
         setLoading(false);
       }
@@ -39,7 +51,9 @@ export function AuthProvider({ children }) {
         fetchProfile(session.user);
       } else {
         const savedUser = localStorage.getItem('demo_user');
-        if (!savedUser) setUser(null);
+        if (!savedUser) {
+          setUser(DEFAULT_ADMIN_USER);
+        }
       }
     });
 
