@@ -715,15 +715,21 @@ export default function Inventory() {
       
       {qrProduct && (
         <div className="modal-overlay" onClick={() => setQrProduct(null)}>
-          <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
+          <div className="modal modal-sm animate-slide" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">Código QR del Producto</h2>
               <button className="btn btn-ghost btn-icon" onClick={() => setQrProduct(null)}><X size={18} /></button>
             </div>
             <div className="modal-body text-center p-40">
-              <div className="qr-container"><QRCode value={JSON.stringify({ id: qrProduct.id, sku: qrProduct.sku })} size={180} /></div>
-              <p className="fw-600 mt-20">{qrProduct.name}</p>
-              <p className="text-muted">{qrProduct.sku}</p>
+              <div className="qr-container">
+                <QRCode 
+                  value={String(qrProduct.id || '')} 
+                  size={180}
+                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                />
+              </div>
+              <p className="fw-600 mt-20">{String(qrProduct.name || '')}</p>
+              <p className="text-muted">{String(qrProduct.sku || '')}</p>
             </div>
           </div>
         </div>
