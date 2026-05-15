@@ -502,7 +502,7 @@ export default function StockMovements() {
           <h1 className="page-title">Movimientos de Stock</h1>
           <p className="page-subtitle">{movements.length} operaciones registradas con trazabilidad avanzada</p>
         </div>
-        <div className="flex" style={{ gap: '60px', alignItems: 'center' }}>
+        <div className="flex" style={{ gap: '40px', alignItems: 'center' }}>
           <button className="btn btn-secondary" onClick={() => {
             const headers = ['Fecha', 'SKU', 'Producto', 'Cantidad', 'Tipo', 'Lote', 'Motivo', 'Responsable', 'Observaciones'];
             const rows = sortedMovements.map(m => {
