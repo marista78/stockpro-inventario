@@ -8,6 +8,7 @@ import {
 import { Download, BarChart3, Filter, Calendar, AlertCircle, TrendingUp, TrendingDown, Package, Inbox } from 'lucide-react';
 import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
 import './Reports.css';
 
 const CHART_COLORS = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -25,15 +26,12 @@ const UNIT_ABBR = {
 
 const abreviar = (unit) => UNIT_ABBR[unit] || unit;
 
-function exportCSV(data, filename) {
+function exportExcel(data, filename) {
   if (!data.length) return;
-  const headers = Object.keys(data[0]).join(',');
-  const rows = data.map(row => Object.values(row).map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
-  const csv = [headers, ...rows].join('\n');
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
+  XLSX.writeFile(wb, filename);
 }
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -281,7 +279,7 @@ export default function Reports() {
   ].filter(d => d.value > 0);
 
   const handleExportFiltered = () => {
-    exportCSV(
+    exportExcel(
       consolidatedProducts.map(p => ({
         Nombre: p.name, SKU: p.sku,
         Categoría: getCategoryById(p.categoryId)?.name || 'Sin categoría',
@@ -291,7 +289,7 @@ export default function Reports() {
         'Valor Total': p.price * p.totalStock,
         Estado: p.totalStock === 0 ? 'Agotado' : (p.totalStock < p.effectiveMin ? 'Bajo Stock' : 'OK'),
       })),
-      `reporte_filtrado_${format(new Date(), 'yyyyMMdd')}.csv`
+      `reporte_filtrado_${format(new Date(), 'yyyyMMdd')}.xlsx`
     );
   };
 
