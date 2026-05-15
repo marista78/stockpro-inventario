@@ -281,3 +281,53 @@
 .sku-gen-btn:active {
   transform: scale(0.95);
 }
+
+/* QR Code Modal Styles */
+.modal-sm {
+  max-width: 400px;
+}
+
+.qr-container {
+  background: white;
+  padding: 20px;
+  border-radius: var(--radius);
+  display: inline-block;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.qr-container svg {
+  display: block;
+}
+
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.nav-arrow:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.nav-arrow.prev { left: -60px; }
+.nav-arrow.next { right: -60px; }
+
+@media (max-width: 900px) {
+  .nav-arrow { display: none; }
+}
