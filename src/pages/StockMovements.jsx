@@ -5,7 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { 
   Plus, ArrowUpCircle, ArrowDownCircle, Search, X, Filter,
   Layers, Package, Calendar, User, MessageSquare, 
-  ArrowRight, Info, History, ShieldCheck 
+  ArrowRight, Info, History, ShieldCheck, Download
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import './StockMovements.css';
