@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useToast } from '../context/ToastContext';
 import { Plus, Search, Pencil, Trash2, QrCode, X, Upload, Package, Filter, Download, ChevronRight, ChevronLeft, Layers, AlertTriangle, Info } from 'lucide-react';
-import QRCode from 'react-qr-code';
+import { QRCode } from 'react-qr-code';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 import './Inventory.css';
@@ -713,7 +713,7 @@ export default function Inventory() {
         />
       )}
       
-      {qrProduct && (
+      {qrProduct?.id && (
         <div className="modal-overlay" onClick={() => setQrProduct(null)}>
           <div className="modal modal-sm animate-slide" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
@@ -723,8 +723,10 @@ export default function Inventory() {
             <div className="modal-body text-center p-40">
               <div className="qr-container">
                 <QRCode 
-                  value={String(qrProduct.id || '')} 
+                  value={String(qrProduct.id)} 
                   size={180}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
                   style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                 />
               </div>
