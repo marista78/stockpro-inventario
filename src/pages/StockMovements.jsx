@@ -8,6 +8,7 @@ import {
   ArrowRight, Info, History, ShieldCheck, Download
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
+import * as XLSX from 'xlsx';
 import './StockMovements.css';
 
 const UNIT_ABBR = {
@@ -504,27 +505,27 @@ export default function StockMovements() {
         </div>
         <div className="flex" style={{ gap: '80px', alignItems: 'center' }}>
           <button className="btn btn-secondary" onClick={() => {
-            const headers = ['Fecha', 'SKU', 'Producto', 'Cantidad', 'Tipo', 'Lote', 'Motivo', 'Responsable', 'Observaciones'];
             const rows = sortedMovements.map(m => {
               const product = products.find(p => p.id === m.productId || p.name === m.productName);
-              return [
-                m.date ? format(new Date(m.date), "dd/MM/yyyy HH:mm") : '',
-                product?.sku || '',
-                m.productName,
-                m.quantity,
-                m.type === 'entrada' ? 'Entrada' : 'Salida',
-                m.batch || '',
-                m.reason || '',
-                m.responsible || '',
-                m.observations || ''
-              ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+              return {
+                'Fecha': m.date ? format(new Date(m.date), "dd/MM/yyyy HH:mm") : '',
+                'SKU': product?.sku || '',
+                'Producto': m.productName,
+                'Cantidad': m.quantity,
+                'Tipo': m.type === 'entrada' ? 'Entrada' : 'Salida',
+                'Lote': m.batch || '',
+                'Motivo': m.reason || '',
+                'Responsable': m.responsible || '',
+                'Observaciones': m.observations || ''
+              };
             });
-            const csv = [headers.join(','), ...rows].join('\n');
-            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `movimientos_${format(new Date(), 'yyyyMMdd')}.csv`; a.click();
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Movimientos');
+            XLSX.writeFile(wb, `movimientos_${format(new Date(), 'yyyyMMdd')}.xlsx`);
           }}>
-            <Download size={16} /> Exportar CSV
+            <Download size={16} /> Exportar Excel
           </button>
           {canManage && (
             <button className="btn btn-primary" style={{ marginLeft: '32px' }} onClick={() => setShowModal(true)}>
