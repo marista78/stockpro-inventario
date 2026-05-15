@@ -429,6 +429,8 @@ export default function StockMovements() {
   const [editData, setEditData] = useState(null);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const canManage = user?.role === 'admin' || user?.permissions?.movements;
 
@@ -438,7 +440,15 @@ export default function StockMovements() {
       m.reason?.toLowerCase().includes(search.toLowerCase()) ||
       m.batch?.toLowerCase().includes(search.toLowerCase());
     const matchType = !filterType || m.type === filterType;
-    return matchSearch && matchType;
+    
+    let matchDate = true;
+    if (m.date) {
+      const mDate = format(new Date(m.date), 'yyyy-MM-dd');
+      if (startDate && mDate < startDate) matchDate = false;
+      if (endDate && mDate > endDate) matchDate = false;
+    }
+
+    return matchSearch && matchType && matchDate;
   });
 
   const sortedMovements = useMemo(() => {
@@ -490,13 +500,38 @@ export default function StockMovements() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Movimientos de Stock</h1>
-        <p className="page-subtitle">{movements.length} operaciones registradas con trazabilidad avanzada</p>
+          <p className="page-subtitle">{movements.length} operaciones registradas con trazabilidad avanzada</p>
         </div>
-        {canManage && (
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-            <Plus size={16} /> Nuevo Movimiento
+        <div className="flex gap-12">
+          <button className="btn btn-secondary" onClick={() => {
+            const headers = ['Fecha', 'SKU', 'Producto', 'Cantidad', 'Tipo', 'Lote', 'Motivo', 'Responsable', 'Observaciones'];
+            const rows = sortedMovements.map(m => {
+              const product = products.find(p => p.id === m.productId || p.name === m.productName);
+              return [
+                m.date ? format(new Date(m.date), "dd/MM/yyyy HH:mm") : '',
+                product?.sku || '',
+                m.productName,
+                m.quantity,
+                m.type === 'entrada' ? 'Entrada' : 'Salida',
+                m.batch || '',
+                m.reason || '',
+                m.responsible || '',
+                m.observations || ''
+              ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+            });
+            const csv = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `movimientos_${format(new Date(), 'yyyyMMdd')}.csv`; a.click();
+          }}>
+            <Download size={16} /> Exportar CSV
           </button>
-        )}
+          {canManage && (
+            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+              <Plus size={16} /> Nuevo Movimiento
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="inv-filters filter-bar mb-16">
@@ -511,6 +546,29 @@ export default function StockMovements() {
             <option value="entrada">Entradas</option>
             <option value="salida">Salidas</option>
           </select>
+        </div>
+        <div className="filter-group">
+          <Calendar size={14} className="text-primary" />
+          <input 
+            type="date" 
+            className="filter-select" 
+            value={startDate} 
+            onChange={e => setStartDate(e.target.value)} 
+            placeholder="Desde"
+          />
+          <span className="text-muted">al</span>
+          <input 
+            type="date" 
+            className="filter-select" 
+            value={endDate} 
+            onChange={e => setEndDate(e.target.value)} 
+            placeholder="Hasta"
+          />
+          {(startDate || endDate) && (
+            <button className="btn btn-ghost btn-icon btn-sm" onClick={() => { setStartDate(''); setEndDate(''); }}>
+              <X size={14} />
+            </button>
+          )}
         </div>
       </div>
 
