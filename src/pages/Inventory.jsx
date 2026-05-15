@@ -233,7 +233,7 @@ function ProductModal({ product, categories, onSave, onClose, calculateSuggested
   );
 }
 
-function ProductDetailModal({ productGroup, categories, onClose, getCategoryById, calculateSuggestedROP, onEdit, onDelete, canManage, onNavigate }) {
+function ProductDetailModal({ productGroup, categories, onClose, getCategoryById, calculateSuggestedROP, onEdit, onDelete, canManage, onNavigate, onQr }) {
   const main = productGroup.main;
   const cat = getCategoryById(main.categoryId);
   const totalStock = productGroup.totalStock;
@@ -270,6 +270,9 @@ function ProductDetailModal({ productGroup, categories, onClose, getCategoryById
           <span className="text-muted" style={{ fontSize: '13px' }}>SKU: {main.sku} | {cat?.name}</span>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button className="btn btn-ghost btn-icon" onClick={() => onQr(main)} title="Ver QR">
+            <QrCode size={18} />
+          </button>
           {canManage && (
             <button className="btn btn-ghost btn-icon" style={{ color: 'var(--primary)' }} onClick={() => onEdit(main)}>
               <Pencil size={18} />
@@ -634,6 +637,7 @@ export default function Inventory() {
               <th>Lotes</th>
               <th>Proveedor</th>
               <th>Estado</th>
+              <th className="text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -682,6 +686,15 @@ export default function Inventory() {
                      (g.totalStock || 0) < (p.minStock || 0) ? <span className="badge badge-danger">BAJO</span> : 
                      (g.totalStock || 0) <= (p.minStock || 0) * 1.5 ? <span className="badge badge-warning">REORDEN</span> :
                      <span className="badge badge-success">OK</span>}
+                  </td>
+                  <td className="text-right">
+                    <button 
+                      className="btn btn-ghost btn-icon" 
+                      onClick={(e) => { e.stopPropagation(); setQrProduct(p); }}
+                      title="Generar QR"
+                    >
+                      <QrCode size={16} />
+                    </button>
                   </td>
                 </tr>
               );
@@ -743,6 +756,7 @@ export default function Inventory() {
               calculateSuggestedROP={calculateSuggestedROP}
               canManage={canManage}
               onNavigate={handleNavigate}
+              onQr={(p) => setQrProduct(p)}
               onEdit={(p, updates) => { 
                 if (updates) {
                   handleSave(updates, p);
