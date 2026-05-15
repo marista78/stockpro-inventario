@@ -527,7 +527,7 @@ export default function StockMovements() {
             <Download size={16} /> Exportar CSV
           </button>
           {canManage && (
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            <button className="btn btn-primary" style={{ marginLeft: '32px' }} onClick={() => setShowModal(true)}>
               <Plus size={16} /> Nuevo Movimiento
             </button>
           )}
