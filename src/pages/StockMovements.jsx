@@ -35,35 +35,37 @@ function TicketModal({ ticketData, onClose, shopName }) {
 
   const handlePrint = () => {
     const content = ticketRef.current.innerHTML;
-    const win = window.open('', '_blank', 'width=400,height=700');
-    win.document.write(`
-      <html><head><title>Ticket ${ticketNum}</title>
-      <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: 'Courier New', monospace; font-size: 12px; color: #000; background: #fff; padding: 0; }
-        .ticket-inner { width: 100%; max-width: 320px; margin: 0 auto; padding: 16px 20px; }
-        .t-header { text-align:center; margin-bottom:12px; }
-        .t-shopname { font-size:18px; font-weight:900; letter-spacing:1px; text-transform:uppercase; }
-        .t-sub { font-size:10px; color:#555; margin-top:2px; }
-        .t-divider { border:none; border-top:1px dashed #000; margin:10px 0; }
-        .t-title { text-align:center; font-size:13px; font-weight:700; letter-spacing:2px; margin:8px 0; text-transform:uppercase; }
-        .t-meta { font-size:10px; color:#444; margin:2px 0; }
-        .t-meta span { font-weight:700; color:#000; }
-        .t-table { width:100%; border-collapse:collapse; margin:8px 0; font-size:11px; }
-        .t-table th { text-align:left; font-size:10px; font-weight:700; border-bottom:1px solid #000; padding:3px 0; }
-        .t-table td { padding:4px 0; vertical-align:top; }
-        .t-table .right { text-align:right; }
-        .t-total-box { border-top:1px double #000; margin-top:8px; padding-top:8px; }
-        .t-total-row { display:flex; justify-content:space-between; font-size:12px; margin:2px 0; }
-        .t-total-row.big { font-size:16px; font-weight:900; margin-top:4px; }
-        .t-footer { text-align:center; margin-top:14px; font-size:11px; color:#444; }
-        .t-footer strong { font-size:13px; font-weight:900; color:#000; display:block; }
-        .t-obs { font-size:10px; font-style:italic; color:#555; margin-top:6px; padding:4px 0; border-top:1px dashed #000; }
-      </style></head><body>
-      <div class="ticket-inner">${content}</div>
-      </body></html>`);
-    win.document.close();
-    setTimeout(() => { win.print(); win.close(); }, 300);
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ticket ${correlativo}</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Courier New', monospace; font-size: 12px; color: #000; background: #fff; }
+    .ticket-inner { width: 100%; max-width: 320px; margin: 0 auto; padding: 20px 18px; }
+    b { font-weight: 700; }
+    table { width:100%; border-collapse:collapse; font-size:11px; }
+    th { text-align:left; font-size:10px; font-weight:700; border-bottom:1px solid #000; padding:3px 0; }
+    td { padding:4px 0; vertical-align:top; }
+    @media print {
+      body { margin: 0; }
+      @page { margin: 8mm; size: 80mm auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ticket-inner">${content}</div>
+  <script>window.onload = function(){ window.print(); window.close(); }<\/script>
+</body>
+</html>`;
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const win  = window.open(url, '_blank', 'width=420,height=750');
+    // Liberar el blob URL después de que la ventana lo haya cargado
+    if (win) {
+      win.onload = () => URL.revokeObjectURL(url);
+    }
   };
 
   const qty     = ticketData.quantity || 0;
