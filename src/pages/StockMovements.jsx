@@ -29,7 +29,9 @@ const abreviar = (unit) => UNIT_ABBR[unit] || unit;
 ───────────────────────────────────────────── */
 function TicketModal({ ticketData, onClose, shopName }) {
   const ticketRef = useRef();
-  const ticketNum = useMemo(() => `TKT-${Date.now().toString().slice(-8)}`, []);
+  // El correlativo viene del formulario, ya generado
+  const correlativo = ticketData.voucherSerial || `TKT-${Date.now().toString().slice(-8)}`;
+  const voucherLabel = ticketData.voucherType === 'Factura' ? 'FACTURA DE VENTA' : 'BOLETA DE VENTA';
 
   const handlePrint = () => {
     const content = ticketRef.current.innerHTML;
@@ -100,21 +102,26 @@ function TicketModal({ ticketData, onClose, shopName }) {
             <div style={{ position: 'absolute', top: '-10px', left: 0, right: 0, height: '10px', backgroundImage: 'radial-gradient(circle at 50% 0%, #fff 60%, transparent 60%)', backgroundSize: '16px 10px', backgroundRepeat: 'repeat-x' }} />
 
             {/* Encabezado */}
-            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
               <div style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase' }}>{shopName}</div>
-              <div style={{ fontSize: '9px', color: '#666', marginTop: '2px' }}>COMPROBANTE DE SALIDA</div>
             </div>
 
-            <div style={{ borderTop: '1px dashed #bbb', margin: '8px 0' }} />
+            <div style={{ borderTop: '1px dashed #bbb', margin: '6px 0' }} />
+
+            {/* Tipo de comprobante + correlativo — bien visible */}
+            <div style={{ textAlign: 'center', margin: '8px 0' }}>
+              <div style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase' }}>{voucherLabel}</div>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#222', marginTop: '2px' }}>N° {correlativo}</div>
+            </div>
+
+            <div style={{ borderTop: '1px dashed #bbb', margin: '6px 0' }} />
 
             {/* Meta datos */}
-            <div style={{ fontSize: '10px', lineHeight: '1.7' }}>
-              <div><b>N° Ticket:</b> {ticketNum}</div>
+            <div style={{ fontSize: '10px', lineHeight: '1.8' }}>
               <div><b>Fecha:</b> {ticketData.date ? format(new Date(ticketData.date), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
-              <div><b>Motivo:</b> {ticketData.reason || 'Venta'}</div>
-              <div><b>Responsable:</b> {ticketData.responsible || '—'}</div>
-              {ticketData.buyerName && <div><b>Cliente:</b> {ticketData.buyerName}</div>}
-              {ticketData.buyerDocument && <div><b>Documento:</b> {ticketData.buyerDocument}</div>}
+              <div><b>Cajero:</b> {ticketData.responsible || '—'}</div>
+              {ticketData.buyerName    && <div><b>Cliente:</b>    {ticketData.buyerName}</div>}
+              {ticketData.buyerDocument && <div><b>Doc. ({ticketData.voucherType === 'Factura' ? 'RUC' : 'DNI'}):</b> {ticketData.buyerDocument}</div>}
             </div>
 
             <div style={{ borderTop: '1px dashed #bbb', margin: '10px 0' }} />
@@ -191,7 +198,7 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
   } : { 
     type: 'entrada',
     productId: '',
-    loteMode: 'existing', // 'existing' | 'new'
+    loteMode: 'existing',
     quantity: '',
     reason: 'Compra',
     responsible: user?.name || '',
@@ -202,6 +209,7 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
     newBatchPrice: '',
     buyerName: '',
     buyerDocument: '',
+    voucherType: 'Boleta', // 'Boleta' | 'Factura'
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -236,8 +244,13 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
     return batchesForProduct.reduce((sum, p) => sum + p.stock, 0);
   }, [batchesForProduct]);
 
-  // Historial reciente para este producto
+  // Correlativo auto-generado según tipo de comprobante y cantidad de movimientos registrados
   const { movements } = useInventory();
+  const voucherSerial = useMemo(() => {
+    const salesCount = (movements || []).filter(m => m.type === 'salida' && m.reason === 'Venta').length + 1;
+    const num = String(salesCount).padStart(5, '0');
+    return form.voucherType === 'Factura' ? `F001-${num}` : `B001-${num}`;
+  }, [movements, form.voucherType]);
   const productHistory = useMemo(() => {
     if (!selectedProductBase) return [];
     return (movements || [])
@@ -258,7 +271,8 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
       ...form,
       productName: selectedProductBase?.name,
       quantity: parseInt(form.quantity),
-      purchasePrice: parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0
+      purchasePrice: parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0,
+      voucherSerial: (form.type === 'salida' && form.reason === 'Venta') ? voucherSerial : undefined,
     });
   };
 
@@ -279,6 +293,42 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                 <Info size={20} />
                 <div className="fs-13">
                   <strong>Modo Edición:</strong> Al modificar este registro, el stock se ajustará automáticamente revirtiendo el valor anterior y aplicando el nuevo.
+                </div>
+              </div>
+            )}
+
+            {/* BANNER COMPROBANTE — visible en la parte superior cuando es Salida por Venta */}
+            {!isEditing && form.type === 'salida' && form.reason === 'Venta' && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '16px',
+                background: 'linear-gradient(135deg, rgba(79,70,229,0.12) 0%, rgba(79,70,229,0.06) 100%)',
+                border: '1px solid rgba(79,70,229,0.35)',
+                borderRadius: '10px', padding: '12px 16px', marginBottom: '20px'
+              }}>
+                <Receipt size={22} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.5px', marginBottom: '6px' }}>TIPO DE COMPROBANTE</div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {['Boleta', 'Factura'].map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => set('voucherType', t)}
+                        style={{
+                          padding: '5px 18px', borderRadius: '20px', border: '1.5px solid',
+                          borderColor: form.voucherType === t ? 'var(--primary)' : 'var(--border)',
+                          background: form.voucherType === t ? 'var(--primary)' : 'transparent',
+                          color: form.voucherType === t ? '#fff' : 'var(--text-muted)',
+                          fontWeight: 700, fontSize: '12px', cursor: 'pointer', transition: 'all 0.15s'
+                        }}
+                      >{t}</button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginBottom: '2px' }}>N° CORRELATIVO</div>
+                  <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--primary)', letterSpacing: '1px' }}>{voucherSerial}</div>
+                  <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Generado automáticamente</div>
                 </div>
               </div>
             )}
@@ -534,10 +584,10 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                         />
                       </div>
                       <div className="input-group mb-0">
-                        <label className="input-label">N° Documento (DNI/RUC)</label>
+                        <label className="input-label">{form.voucherType === 'Factura' ? 'N° RUC' : 'N° DNI'}</label>
                         <input
                           className="input"
-                          placeholder="Ej: 12345678"
+                          placeholder={form.voucherType === 'Factura' ? 'Ej: 20123456789' : 'Ej: 12345678'}
                           value={form.buyerDocument}
                           onChange={e => set('buyerDocument', e.target.value)}
                           maxLength={20}
