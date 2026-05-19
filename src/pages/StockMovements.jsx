@@ -88,99 +88,101 @@ function TicketModal({ ticketData, onClose, shopName }) {
         </div>
 
         {/* Contenido del ticket */}
-        <div style={{ padding: '24px 20px', background: 'var(--bg-secondary)', display: 'flex', justifyContent: 'center', overflowY: 'auto', flex: 1 }}>
-          <div
-            ref={ticketRef}
-            className="ticket-paper"
-            style={{
-              width: '300px',
-              background: '#fff',
-              color: '#111',
-              fontFamily: "'Courier New', monospace",
-              padding: '20px 18px',
-              borderRadius: '4px 4px 0 0',
-              position: 'relative',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
-            }}
-          >
-            {/* Borde dentado superior */}
-            <div style={{ position: 'absolute', top: '-10px', left: 0, right: 0, height: '10px', backgroundImage: 'radial-gradient(circle at 50% 0%, #fff 60%, transparent 60%)', backgroundSize: '16px 10px', backgroundRepeat: 'repeat-x' }} />
+        <div style={{ background: 'var(--bg-secondary)', overflowY: 'auto', flex: 1, padding: '24px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: '100%', paddingBottom: '16px' }}>
+            <div
+              ref={ticketRef}
+              className="ticket-paper"
+              style={{
+                width: '300px',
+                background: '#fff',
+                color: '#111',
+                fontFamily: "'Courier New', monospace",
+                padding: '20px 18px',
+                borderRadius: '4px 4px 0 0',
+                position: 'relative',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
+              }}
+            >
+              {/* Borde dentado superior */}
+              <div style={{ position: 'absolute', top: '-10px', left: 0, right: 0, height: '10px', backgroundImage: 'radial-gradient(circle at 50% 0%, #fff 60%, transparent 60%)', backgroundSize: '16px 10px', backgroundRepeat: 'repeat-x' }} />
 
-            {/* Encabezado */}
-            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-              <div style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase' }}>{shopName}</div>
-              {shopRuc && (
-                <div style={{ fontSize: '10px', color: '#333', marginTop: '3px', fontFamily: "'Courier New', monospace" }}>{shopRuc}</div>
+              {/* Encabezado */}
+              <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase' }}>{shopName}</div>
+                {shopRuc && (
+                  <div style={{ fontSize: '10px', color: '#333', marginTop: '3px', fontFamily: "'Courier New', monospace" }}>{shopRuc}</div>
+                )}
+                {shopAddress && (
+                  <div style={{ fontSize: '10px', color: '#333', marginTop: '1px', fontFamily: "'Courier New', monospace" }}>{shopAddress}</div>
+                )}
+              </div>
+
+              <div style={{ borderTop: '1px dashed #bbb', margin: '6px 0' }} />
+
+              {/* Tipo de comprobante + correlativo — bien visible */}
+              <div style={{ textAlign: 'center', margin: '8px 0' }}>
+                <div style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase' }}>{voucherLabel}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#222', marginTop: '2px' }}>N° {correlativo}</div>
+              </div>
+
+              <div style={{ borderTop: '1px dashed #bbb', margin: '6px 0' }} />
+
+              {/* Meta datos */}
+              <div style={{ fontSize: '10px', lineHeight: '1.8' }}>
+                <div><b>Fecha:</b> {ticketData.date ? format(new Date(ticketData.date), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+                <div><b>Cajero:</b> {ticketData.responsible || '—'}</div>
+                {ticketData.buyerName    && <div><b>Cliente:</b>    {ticketData.buyerName}</div>}
+                {ticketData.buyerDocument && <div><b>Doc. ({ticketData.voucherType === 'Factura' ? 'RUC' : 'DNI'}):</b> {ticketData.buyerDocument}</div>}
+              </div>
+
+              <div style={{ borderTop: '1px dashed #bbb', margin: '10px 0' }} />
+
+              {/* Tabla de items */}
+              <table style={{ width: '100%', fontSize: '10px', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #aaa' }}>
+                    <th style={{ textAlign: 'left', paddingBottom: '4px', fontSize: '9px' }}>DESCRIPCIÓN</th>
+                    <th style={{ textAlign: 'center', paddingBottom: '4px', fontSize: '9px' }}>CANT</th>
+                    <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '9px' }}>P.U.</th>
+                    <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '9px' }}>TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ paddingTop: '6px', paddingRight: '4px', lineHeight: '1.3', maxWidth: '110px', wordBreak: 'break-word' }}>{ticketData.productName}</td>
+                    <td style={{ textAlign: 'center', paddingTop: '6px' }}>{qty}</td>
+                    <td style={{ textAlign: 'right', paddingTop: '6px' }}>{price.toFixed(2)}</td>
+                    <td style={{ textAlign: 'right', paddingTop: '6px', fontWeight: 700 }}>{(qty * price).toFixed(2)}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div style={{ borderTop: '1px double #000', marginTop: '10px', paddingTop: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
+                  <span>Subtotal:</span><span>{total.toFixed(2)} S/</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 900, marginTop: '4px' }}>
+                  <span>TOTAL:</span><span>{total.toFixed(2)} S/</span>
+                </div>
+              </div>
+
+              {ticketData.observations && (
+                <div style={{ marginTop: '10px', fontSize: '10px', fontStyle: 'italic', color: '#555', borderTop: '1px dashed #bbb', paddingTop: '6px' }}>
+                  Obs: {ticketData.observations}
+                </div>
               )}
-              {shopAddress && (
-                <div style={{ fontSize: '10px', color: '#333', marginTop: '1px', fontFamily: "'Courier New', monospace" }}>{shopAddress}</div>
-              )}
-            </div>
 
-            <div style={{ borderTop: '1px dashed #bbb', margin: '6px 0' }} />
+              <div style={{ borderTop: '1px dashed #bbb', margin: '12px 0 4px' }} />
 
-            {/* Tipo de comprobante + correlativo — bien visible */}
-            <div style={{ textAlign: 'center', margin: '8px 0' }}>
-              <div style={{ fontSize: '13px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase' }}>{voucherLabel}</div>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#222', marginTop: '2px' }}>N° {correlativo}</div>
-            </div>
-
-            <div style={{ borderTop: '1px dashed #bbb', margin: '6px 0' }} />
-
-            {/* Meta datos */}
-            <div style={{ fontSize: '10px', lineHeight: '1.8' }}>
-              <div><b>Fecha:</b> {ticketData.date ? format(new Date(ticketData.date), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
-              <div><b>Cajero:</b> {ticketData.responsible || '—'}</div>
-              {ticketData.buyerName    && <div><b>Cliente:</b>    {ticketData.buyerName}</div>}
-              {ticketData.buyerDocument && <div><b>Doc. ({ticketData.voucherType === 'Factura' ? 'RUC' : 'DNI'}):</b> {ticketData.buyerDocument}</div>}
-            </div>
-
-            <div style={{ borderTop: '1px dashed #bbb', margin: '10px 0' }} />
-
-            {/* Tabla de items */}
-            <table style={{ width: '100%', fontSize: '10px', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #aaa' }}>
-                  <th style={{ textAlign: 'left', paddingBottom: '4px', fontSize: '9px' }}>DESCRIPCIÓN</th>
-                  <th style={{ textAlign: 'center', paddingBottom: '4px', fontSize: '9px' }}>CANT</th>
-                  <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '9px' }}>P.U.</th>
-                  <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '9px' }}>TOTAL</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ paddingTop: '6px', paddingRight: '4px', lineHeight: '1.3', maxWidth: '110px', wordBreak: 'break-word' }}>{ticketData.productName}</td>
-                  <td style={{ textAlign: 'center', paddingTop: '6px' }}>{qty}</td>
-                  <td style={{ textAlign: 'right', paddingTop: '6px' }}>{price.toFixed(2)}</td>
-                  <td style={{ textAlign: 'right', paddingTop: '6px', fontWeight: 700 }}>{(qty * price).toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div style={{ borderTop: '1px double #000', marginTop: '10px', paddingTop: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
-                <span>Subtotal:</span><span>{total.toFixed(2)} S/</span>
+              <div style={{ textAlign: 'center', fontSize: '11px', color: '#555' }}>
+                <div style={{ fontSize: '13px', fontWeight: 900, color: '#000', marginBottom: '2px' }}>¡GRACIAS POR SU COMPRA!</div>
+                <div style={{ fontSize: '9px' }}>Conserve este comprobante</div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 900, marginTop: '4px' }}>
-                <span>TOTAL:</span><span>{total.toFixed(2)} S/</span>
-              </div>
+
+              {/* Borde dentado inferior */}
+              <div style={{ position: 'absolute', bottom: '-10px', left: 0, right: 0, height: '10px', backgroundImage: 'radial-gradient(circle at 50% 100%, #fff 60%, transparent 60%)', backgroundSize: '16px 10px', backgroundRepeat: 'repeat-x' }} />
             </div>
-
-            {ticketData.observations && (
-              <div style={{ marginTop: '10px', fontSize: '10px', fontStyle: 'italic', color: '#555', borderTop: '1px dashed #bbb', paddingTop: '6px' }}>
-                Obs: {ticketData.observations}
-              </div>
-            )}
-
-            <div style={{ borderTop: '1px dashed #bbb', margin: '12px 0 4px' }} />
-
-            <div style={{ textAlign: 'center', fontSize: '11px', color: '#555' }}>
-              <div style={{ fontSize: '13px', fontWeight: 900, color: '#000', marginBottom: '2px' }}>¡GRACIAS POR SU COMPRA!</div>
-              <div style={{ fontSize: '9px' }}>Conserve este comprobante</div>
-            </div>
-
-            {/* Borde dentado inferior */}
-            <div style={{ position: 'absolute', bottom: '-10px', left: 0, right: 0, height: '10px', backgroundImage: 'radial-gradient(circle at 50% 100%, #fff 60%, transparent 60%)', backgroundSize: '16px 10px', backgroundRepeat: 'repeat-x' }} />
           </div>
         </div>
 
