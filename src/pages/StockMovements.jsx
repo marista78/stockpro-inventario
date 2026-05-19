@@ -388,12 +388,19 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                       readOnly={isEditing}
                       onChange={e => {
                         setSearchQuery(e.target.value);
-                        if (!e.target.value) setForm(p => ({ ...p, productId: '' }));
+                        if (!e.target.value) {
+                          setForm(p => ({ ...p, productId: '' }));
+                          setSelectedBaseProduct(null);
+                        }
                       }}
                     />
                     {selectedProductBase && !isEditing && (
                       <button type="button" className="btn btn-ghost btn-icon" style={{ padding: '0 4px' }}
-                        onClick={() => { setSearchQuery(''); set('productId', ''); }}
+                        onClick={() => { 
+                          setSearchQuery(''); 
+                          set('productId', ''); 
+                          setSelectedBaseProduct(null);
+                        }}
                       >
                         <X size={14} />
                       </button>
