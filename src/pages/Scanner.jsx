@@ -107,7 +107,7 @@ export default function Scanner() {
                     </div>
                     <div className="result-stat">
                       <span className="result-stat-label">Precio</span>
-                      <span className="result-stat-value">S/ {result.price?.toLocaleString('es-PE')}</span>
+                      <span className="result-stat-value">{result.price?.toLocaleString('es-PE')} S/</span>
                     </div>
                     <div className="result-stat">
                       <span className="result-stat-label">Estado</span>

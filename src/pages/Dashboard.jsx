@@ -93,7 +93,7 @@ export default function Dashboard() {
       {/* Stats */}
       <div className="stats-grid mb-24">
         <StatCard icon={Package} label="Total Productos" value={products.length} sub={`${categories.length} categorías`} color="var(--primary)" trend={12} />
-        <StatCard icon={DollarSign} label="Valor del Stock" value={`S/ ${totalValue.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`} color="var(--accent)" trend={5} />
+        <StatCard icon={DollarSign} label="Valor del Stock" value={`${totalValue.toLocaleString('es-PE', { minimumFractionDigits: 2 })} S/`} color="var(--accent)" trend={5} />
         <StatCard icon={AlertTriangle} label="Bajo Stock" value={lowStockProducts.length} sub="Acción Urgente" color="var(--danger)" />
         <StatCard icon={TrendingUp} label="Punto Reorden" value={reorderProducts.length} sub="Proyectar Compras" color="var(--warning)" />
       </div>

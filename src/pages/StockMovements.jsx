@@ -45,8 +45,8 @@ function TicketModal({ ticketData, onClose, shopName }) {
     body { font-family: 'Courier New', monospace; font-size: 12px; color: #000; background: #fff; }
     .ticket-inner { width: 100%; max-width: 320px; margin: 0 auto; padding: 20px 18px; }
     b { font-weight: 700; }
-    table { width:100%; border-collapse:collapse; font-size:11px; }
-    th { text-align:left; font-size:10px; font-weight:700; border-bottom:1px solid #000; padding:3px 0; }
+    table { width:100%; border-collapse:collapse; font-size:10px; }
+    th { text-align:left; font-size:9px; font-weight:700; border-bottom:1px solid #000; padding:3px 0; }
     td { padding:4px 0; vertical-align:top; }
     @media print {
       body { margin: 0; }
@@ -129,31 +129,31 @@ function TicketModal({ ticketData, onClose, shopName }) {
             <div style={{ borderTop: '1px dashed #bbb', margin: '10px 0' }} />
 
             {/* Tabla de items */}
-            <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', fontSize: '10px', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #aaa' }}>
-                  <th style={{ textAlign: 'left', paddingBottom: '4px', fontSize: '10px' }}>DESCRIPCIÓN</th>
-                  <th style={{ textAlign: 'center', paddingBottom: '4px', fontSize: '10px' }}>CANT</th>
-                  <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '10px' }}>P.U.</th>
-                  <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '10px' }}>TOTAL</th>
+                  <th style={{ textAlign: 'left', paddingBottom: '4px', fontSize: '9px' }}>DESCRIPCIÓN</th>
+                  <th style={{ textAlign: 'center', paddingBottom: '4px', fontSize: '9px' }}>CANT</th>
+                  <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '9px' }}>P.U.</th>
+                  <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '9px' }}>TOTAL</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td style={{ paddingTop: '6px', paddingRight: '4px', lineHeight: '1.3', maxWidth: '110px', wordBreak: 'break-word' }}>{ticketData.productName}</td>
                   <td style={{ textAlign: 'center', paddingTop: '6px' }}>{qty}</td>
-                  <td style={{ textAlign: 'right', paddingTop: '6px' }}>S/{price.toFixed(2)}</td>
-                  <td style={{ textAlign: 'right', paddingTop: '6px', fontWeight: 700 }}>S/{(qty * price).toFixed(2)}</td>
+                  <td style={{ textAlign: 'right', paddingTop: '6px' }}>{price.toFixed(2)}</td>
+                  <td style={{ textAlign: 'right', paddingTop: '6px', fontWeight: 700 }}>{(qty * price).toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>
 
             <div style={{ borderTop: '1px double #000', marginTop: '10px', paddingTop: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
-                <span>Subtotal:</span><span>S/ {total.toFixed(2)}</span>
+                <span>Subtotal:</span><span>{total.toFixed(2)} S/</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 900, marginTop: '4px' }}>
-                <span>TOTAL:</span><span>S/ {total.toFixed(2)}</span>
+                <span>TOTAL:</span><span>{total.toFixed(2)} S/</span>
               </div>
             </div>
 
@@ -467,10 +467,10 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                   <div className="auto-summary-box mt-20">
                     <div className="preview-label mb-12">RESUMEN AUTOMÁTICO</div>
                     <div className="summary-row"><span>Cantidad</span><span className="fw-700">{form.quantity || 0}</span></div>
-                    <div className="summary-row"><span>Precio unitario</span><span>S/ {(parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0).toFixed(2)}</span></div>
+                    <div className="summary-row"><span>Precio unitario</span><span>{(parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0).toFixed(2)} S/</span></div>
                     <div className="summary-total">
                       <span className="total-label">TOTAL</span>
-                      <span className="total-val">S/ {totalCalculated.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                      <span className="total-val">{totalCalculated.toLocaleString('es-PE', { minimumFractionDigits: 2 })} S/</span>
                     </div>
                   </div>
                 </div>
