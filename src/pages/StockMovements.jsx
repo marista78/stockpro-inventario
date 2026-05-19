@@ -77,9 +77,9 @@ function TicketModal({ ticketData, onClose, shopName }) {
 
   return (
     <div className="modal-overlay" style={{ zIndex: 9999 }}>
-      <div className="modal animate-slide" style={{ maxWidth: '420px', width: '95%', padding: 0, background: 'var(--bg-primary)', borderRadius: '16px', overflow: 'hidden' }}>
+      <div className="modal animate-slide" style={{ maxWidth: '420px', width: '95%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', padding: 0, background: 'var(--bg-primary)', borderRadius: '16px', overflow: 'hidden' }}>
         {/* Header del modal de ticket */}
-        <div style={{ background: 'linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ background: 'linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Receipt size={20} style={{ color: 'var(--primary)' }} />
             <span style={{ fontWeight: 700, fontSize: '15px' }}>Ticket Generado</span>
@@ -88,7 +88,7 @@ function TicketModal({ ticketData, onClose, shopName }) {
         </div>
 
         {/* Contenido del ticket */}
-        <div style={{ padding: '24px 20px', background: 'var(--bg-secondary)', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ padding: '24px 20px', background: 'var(--bg-secondary)', display: 'flex', justifyContent: 'center', overflowY: 'auto', flex: 1 }}>
           <div
             ref={ticketRef}
             className="ticket-paper"
@@ -185,7 +185,7 @@ function TicketModal({ ticketData, onClose, shopName }) {
         </div>
 
         {/* Footer del modal */}
-        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid var(--border)' }}>
+        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
           <button className="btn btn-secondary" onClick={onClose}>Cerrar</button>
           <button className="btn btn-primary" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Printer size={16} /> Imprimir Ticket
