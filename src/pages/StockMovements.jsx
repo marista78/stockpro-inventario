@@ -1,11 +1,13 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import { useToast } from '../context/ToastContext';
+import { useSettings } from '../context/SettingsContext';
 import { 
   Plus, ArrowUpCircle, ArrowDownCircle, Search, X, Filter,
   Layers, Package, Calendar, User, MessageSquare, 
-  ArrowRight, Info, History, ShieldCheck, Download
+  ArrowRight, Info, History, ShieldCheck, Download,
+  Printer, Receipt
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import * as XLSX from 'xlsx';
@@ -22,6 +24,163 @@ const UNIT_ABBR = {
 
 const abreviar = (unit) => UNIT_ABBR[unit] || unit;
 
+/* ─────────────────────────────────────────────
+   TICKET MODAL — Papel térmico de salida
+───────────────────────────────────────────── */
+function TicketModal({ ticketData, onClose, shopName }) {
+  const ticketRef = useRef();
+  const ticketNum = useMemo(() => `TKT-${Date.now().toString().slice(-8)}`, []);
+
+  const handlePrint = () => {
+    const content = ticketRef.current.innerHTML;
+    const win = window.open('', '_blank', 'width=400,height=700');
+    win.document.write(`
+      <html><head><title>Ticket ${ticketNum}</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Courier New', monospace; font-size: 12px; color: #000; background: #fff; padding: 0; }
+        .ticket-inner { width: 100%; max-width: 320px; margin: 0 auto; padding: 16px 20px; }
+        .t-header { text-align:center; margin-bottom:12px; }
+        .t-shopname { font-size:18px; font-weight:900; letter-spacing:1px; text-transform:uppercase; }
+        .t-sub { font-size:10px; color:#555; margin-top:2px; }
+        .t-divider { border:none; border-top:1px dashed #000; margin:10px 0; }
+        .t-title { text-align:center; font-size:13px; font-weight:700; letter-spacing:2px; margin:8px 0; text-transform:uppercase; }
+        .t-meta { font-size:10px; color:#444; margin:2px 0; }
+        .t-meta span { font-weight:700; color:#000; }
+        .t-table { width:100%; border-collapse:collapse; margin:8px 0; font-size:11px; }
+        .t-table th { text-align:left; font-size:10px; font-weight:700; border-bottom:1px solid #000; padding:3px 0; }
+        .t-table td { padding:4px 0; vertical-align:top; }
+        .t-table .right { text-align:right; }
+        .t-total-box { border-top:1px double #000; margin-top:8px; padding-top:8px; }
+        .t-total-row { display:flex; justify-content:space-between; font-size:12px; margin:2px 0; }
+        .t-total-row.big { font-size:16px; font-weight:900; margin-top:4px; }
+        .t-footer { text-align:center; margin-top:14px; font-size:11px; color:#444; }
+        .t-footer strong { font-size:13px; font-weight:900; color:#000; display:block; }
+        .t-obs { font-size:10px; font-style:italic; color:#555; margin-top:6px; padding:4px 0; border-top:1px dashed #000; }
+      </style></head><body>
+      <div class="ticket-inner">${content}</div>
+      </body></html>`);
+    win.document.close();
+    setTimeout(() => { win.print(); win.close(); }, 300);
+  };
+
+  const qty     = ticketData.quantity || 0;
+  const price   = ticketData.purchasePrice || 0;
+  const total   = qty * price;
+
+  return (
+    <div className="modal-overlay" style={{ zIndex: 9999 }}>
+      <div className="modal animate-slide" style={{ maxWidth: '420px', width: '95%', padding: 0, background: 'var(--bg-primary)', borderRadius: '16px', overflow: 'hidden' }}>
+        {/* Header del modal de ticket */}
+        <div style={{ background: 'linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Receipt size={20} style={{ color: 'var(--primary)' }} />
+            <span style={{ fontWeight: 700, fontSize: '15px' }}>Ticket Generado</span>
+          </div>
+          <button className="btn btn-ghost btn-icon" onClick={onClose}><X size={18} /></button>
+        </div>
+
+        {/* Contenido del ticket */}
+        <div style={{ padding: '24px 20px', background: 'var(--bg-secondary)', display: 'flex', justifyContent: 'center' }}>
+          <div
+            ref={ticketRef}
+            className="ticket-paper"
+            style={{
+              width: '300px',
+              background: '#fff',
+              color: '#111',
+              fontFamily: "'Courier New', monospace",
+              padding: '20px 18px',
+              borderRadius: '4px 4px 0 0',
+              position: 'relative',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
+            }}
+          >
+            {/* Borde dentado superior */}
+            <div style={{ position: 'absolute', top: '-10px', left: 0, right: 0, height: '10px', backgroundImage: 'radial-gradient(circle at 50% 0%, #fff 60%, transparent 60%)', backgroundSize: '16px 10px', backgroundRepeat: 'repeat-x' }} />
+
+            {/* Encabezado */}
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <div style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase' }}>{shopName}</div>
+              <div style={{ fontSize: '9px', color: '#666', marginTop: '2px' }}>COMPROBANTE DE SALIDA</div>
+            </div>
+
+            <div style={{ borderTop: '1px dashed #bbb', margin: '8px 0' }} />
+
+            {/* Meta datos */}
+            <div style={{ fontSize: '10px', lineHeight: '1.7' }}>
+              <div><b>N° Ticket:</b> {ticketNum}</div>
+              <div><b>Fecha:</b> {ticketData.date ? format(new Date(ticketData.date), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+              <div><b>Motivo:</b> {ticketData.reason || 'Venta'}</div>
+              <div><b>Responsable:</b> {ticketData.responsible || '—'}</div>
+              {ticketData.buyerName && <div><b>Cliente:</b> {ticketData.buyerName}</div>}
+              {ticketData.buyerDocument && <div><b>Documento:</b> {ticketData.buyerDocument}</div>}
+            </div>
+
+            <div style={{ borderTop: '1px dashed #bbb', margin: '10px 0' }} />
+
+            {/* Tabla de items */}
+            <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #aaa' }}>
+                  <th style={{ textAlign: 'left', paddingBottom: '4px', fontSize: '10px' }}>DESCRIPCIÓN</th>
+                  <th style={{ textAlign: 'center', paddingBottom: '4px', fontSize: '10px' }}>CANT</th>
+                  <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '10px' }}>P.U.</th>
+                  <th style={{ textAlign: 'right', paddingBottom: '4px', fontSize: '10px' }}>TOTAL</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ paddingTop: '6px', paddingRight: '4px', lineHeight: '1.3', maxWidth: '110px', wordBreak: 'break-word' }}>{ticketData.productName}</td>
+                  <td style={{ textAlign: 'center', paddingTop: '6px' }}>{qty}</td>
+                  <td style={{ textAlign: 'right', paddingTop: '6px' }}>S/{price.toFixed(2)}</td>
+                  <td style={{ textAlign: 'right', paddingTop: '6px', fontWeight: 700 }}>S/{(qty * price).toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ borderTop: '1px double #000', marginTop: '10px', paddingTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
+                <span>Subtotal:</span><span>S/ {total.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 900, marginTop: '4px' }}>
+                <span>TOTAL:</span><span>S/ {total.toFixed(2)}</span>
+              </div>
+            </div>
+
+            {ticketData.observations && (
+              <div style={{ marginTop: '10px', fontSize: '10px', fontStyle: 'italic', color: '#555', borderTop: '1px dashed #bbb', paddingTop: '6px' }}>
+                Obs: {ticketData.observations}
+              </div>
+            )}
+
+            <div style={{ borderTop: '1px dashed #bbb', margin: '12px 0 4px' }} />
+
+            <div style={{ textAlign: 'center', fontSize: '11px', color: '#555' }}>
+              <div style={{ fontSize: '13px', fontWeight: 900, color: '#000', marginBottom: '2px' }}>¡GRACIAS POR SU COMPRA!</div>
+              <div style={{ fontSize: '9px' }}>Conserve este comprobante</div>
+            </div>
+
+            {/* Borde dentado inferior */}
+            <div style={{ position: 'absolute', bottom: '-10px', left: 0, right: 0, height: '10px', backgroundImage: 'radial-gradient(circle at 50% 100%, #fff 60%, transparent 60%)', backgroundSize: '16px 10px', backgroundRepeat: 'repeat-x' }} />
+          </div>
+        </div>
+
+        {/* Footer del modal */}
+        <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid var(--border)' }}>
+          <button className="btn btn-secondary" onClick={onClose}>Cerrar</button>
+          <button className="btn btn-primary" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Printer size={16} /> Imprimir Ticket
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   MOVEMENT MODAL
+───────────────────────────────────────────── */
 function MovementModal({ products, suppliers, onSave, onDelete, onClose, editData }) {
   const { user, users } = useAuth();
   const isEditing = !!editData;
@@ -41,6 +200,8 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
     newBatchCode: `LOT-${format(new Date(), 'yyyyMMdd')}-001`,
     newBatchProvider: '',
     newBatchPrice: '',
+    buyerName: '',
+    buyerDocument: '',
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -355,7 +516,40 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                   </div>
                 </div>
 
-                <div className="section-title"><span className="section-number">7</span> OBSERVACIONES</div>
+                {/* DATOS DEL COMPRADOR — solo salida por Venta */}
+                {form.type === 'salida' && form.reason === 'Venta' && (
+                  <>
+                    <div className="section-title" style={{ marginTop: '4px' }}>
+                      <span className="section-number">7</span> DATOS DEL COMPRADOR
+                    </div>
+                    <div className="grid-2 mb-16">
+                      <div className="input-group mb-0">
+                        <label className="input-label">Nombre del cliente</label>
+                        <input
+                          className="input"
+                          placeholder="Ej: Juan Pérez"
+                          value={form.buyerName}
+                          onChange={e => set('buyerName', e.target.value)}
+                          maxLength={80}
+                        />
+                      </div>
+                      <div className="input-group mb-0">
+                        <label className="input-label">N° Documento (DNI/RUC)</label>
+                        <input
+                          className="input"
+                          placeholder="Ej: 12345678"
+                          value={form.buyerDocument}
+                          onChange={e => set('buyerDocument', e.target.value)}
+                          maxLength={20}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div className="section-title">
+                  <span className="section-number">{form.type === 'salida' && form.reason === 'Venta' ? '8' : '7'}</span> OBSERVACIONES
+                </div>
                 <div className="input-group">
                   <textarea className="input" rows="2" placeholder="Notas..." value={form.observations} onChange={e => set('observations', e.target.value)} maxLength={200} />
                   <div style={{ fontSize: '10px', textAlign: 'right', color: 'var(--text-muted)' }}>{form.observations.length}/200</div>
@@ -423,11 +617,13 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
 
 export default function StockMovements() {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const { products, movements, suppliers, addMovement, addMultiBatchMovement, updateMovement, deleteMovement } = useInventory();
   const toast = useToast();
   
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [ticketData, setTicketData] = useState(null);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -461,17 +657,24 @@ export default function StockMovements() {
       if (editData) {
         await updateMovement(editData.id, data);
         toast.success('Movimiento actualizado');
+        setShowModal(false);
+        setEditData(null);
       } else {
         if (data.productId === 'AUTO_FIFO') {
           await addMultiBatchMovement(data);
           toast.success('Salida multilote procesada correctamente');
+          setShowModal(false);
         } else {
           await addMovement(data);
           toast.success('Movimiento registrado');
+          setShowModal(false);
+          setEditData(null);
+          // Mostrar ticket solo para salida por Venta
+          if (data.type === 'salida' && data.reason === 'Venta') {
+            setTicketData(data);
+          }
         }
       }
-      setShowModal(false);
-      setEditData(null);
     } catch (err) {
       toast.error('Error: ' + err.message);
     }
@@ -634,6 +837,14 @@ export default function StockMovements() {
           onSave={handleSave} 
           onDelete={handleDelete}
           onClose={() => { setShowModal(false); setEditData(null); }} 
+        />
+      )}
+
+      {ticketData && (
+        <TicketModal
+          ticketData={ticketData}
+          shopName={settings.appName || 'Mi Negocio'}
+          onClose={() => setTicketData(null)}
         />
       )}
     </div>
