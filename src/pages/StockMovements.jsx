@@ -56,7 +56,7 @@ function TicketModal({ ticketData, onClose, shopName }) {
 </head>
 <body>
   <div class="ticket-inner">${content}</div>
-  <script>window.onload = function(){ window.print(); window.close(); }<\/script>
+  <script>window.onload = function(){ window.print(); window.addEventListener('afterprint', function(){ window.close(); }); }<\/script>
 </body>
 </html>`;
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
