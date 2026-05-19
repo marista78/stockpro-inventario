@@ -28,6 +28,9 @@ const abreviar = (unit) => UNIT_ABBR[unit] || unit;
    TICKET MODAL — Papel térmico de salida
 ───────────────────────────────────────────── */
 function TicketModal({ ticketData, onClose, shopName }) {
+  const { settings } = useSettings();
+  const shopRuc = settings.shopRuc || '';
+  const shopAddress = settings.shopAddress || '';
   const ticketRef = useRef();
   // El correlativo viene del formulario, ya generado
   const correlativo = ticketData.voucherSerial || `TKT-${Date.now().toString().slice(-8)}`;
@@ -106,6 +109,12 @@ function TicketModal({ ticketData, onClose, shopName }) {
             {/* Encabezado */}
             <div style={{ textAlign: 'center', marginBottom: '10px' }}>
               <div style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase' }}>{shopName}</div>
+              {shopRuc && (
+                <div style={{ fontSize: '10px', color: '#333', marginTop: '3px', fontFamily: "'Courier New', monospace" }}>{shopRuc}</div>
+              )}
+              {shopAddress && (
+                <div style={{ fontSize: '10px', color: '#333', marginTop: '1px', fontFamily: "'Courier New', monospace" }}>{shopAddress}</div>
+              )}
             </div>
 
             <div style={{ borderTop: '1px dashed #bbb', margin: '6px 0' }} />

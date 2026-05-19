@@ -35,7 +35,9 @@ export default function Maintenance() {
         updateSetting('appName', brandingForm.appName),
         updateSetting('appIcon', brandingForm.appIcon),
         updateSetting('primaryColor', brandingForm.primaryColor),
-        updateSetting('appLogoUrl', brandingForm.appLogoUrl)
+        updateSetting('appLogoUrl', brandingForm.appLogoUrl),
+        updateSetting('shopRuc', brandingForm.shopRuc),
+        updateSetting('shopAddress', brandingForm.shopAddress)
       ]);
       toast.success('Cambios de marca guardados con éxito');
     } catch (error) {
@@ -198,6 +200,30 @@ export default function Maintenance() {
                   value={brandingForm.appName} 
                   onChange={e => setBrandingForm(prev => ({ ...prev, appName: e.target.value }))}
                   placeholder="Ej: StockPro"
+                />
+              </div>
+            </div>
+
+            <div className="input-group mb-16" style={{ marginBottom: '16px' }}>
+              <label className="input-label">RUC de la Empresa (Boleta)</label>
+              <div className="search-bar">
+                <LucideIcons.FileText size={16} className="text-muted" />
+                <input 
+                  value={brandingForm.shopRuc || ''} 
+                  onChange={e => setBrandingForm(prev => ({ ...prev, shopRuc: e.target.value }))}
+                  placeholder="Ej: RUC: 20203040567"
+                />
+              </div>
+            </div>
+
+            <div className="input-group mb-16" style={{ marginBottom: '16px' }}>
+              <label className="input-label">Dirección de la Empresa (Boleta)</label>
+              <div className="search-bar">
+                <LucideIcons.MapPin size={16} className="text-muted" />
+                <input 
+                  value={brandingForm.shopAddress || ''} 
+                  onChange={e => setBrandingForm(prev => ({ ...prev, shopAddress: e.target.value }))}
+                  placeholder="Ej: Av. Principal 123"
                 />
               </div>
             </div>

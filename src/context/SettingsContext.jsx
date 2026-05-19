@@ -7,7 +7,9 @@ export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState({
     appName: 'StockPro',
     appIcon: 'Boxes',
-    primaryColor: '#4f46e5'
+    primaryColor: '#4f46e5',
+    shopRuc: 'RUC: 20203040567',
+    shopAddress: 'mi direccion'
   });
   const [loading, setLoading] = useState(true);
 
