@@ -288,7 +288,7 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
               <button 
                 type="button" 
                 className={`large-type-btn entrada ${form.type === 'entrada' ? 'active' : ''}`}
-                onClick={() => set('type', 'entrada')}
+                onClick={() => setForm(p => ({ ...p, type: 'entrada', reason: 'Compra' }))}
               >
                 <ArrowUpCircle size={24} />
                 <div className="text-left">
@@ -299,7 +299,7 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
               <button 
                 type="button" 
                 className={`large-type-btn salida ${form.type === 'salida' ? 'active' : ''}`}
-                onClick={() => set('type', 'salida')}
+                onClick={() => setForm(p => ({ ...p, type: 'salida', reason: 'Venta' }))}
               >
                 <ArrowDownCircle size={24} />
                 <div className="text-left">
