@@ -5,7 +5,7 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { Download, BarChart3, Filter, Calendar, AlertCircle, TrendingUp, TrendingDown, Package, Inbox } from 'lucide-react';
+import { Download, BarChart3, Filter, Calendar, AlertCircle, TrendingUp, TrendingDown, Package, Inbox, Layers, Info } from 'lucide-react';
 import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 import * as XLSX from 'xlsx';
@@ -70,6 +70,7 @@ export default function Reports() {
   }
   
   // Filters State
+  const [activeTab, setActiveTab] = useState('general'); // 'general', 'abc'
   const [dateRange, setDateRange] = useState('current_month'); // '7', '30', '90', 'all', 'current_month'
   const [viewType, setViewType] = useState('days'); // 'days', 'months', 'years'
   const [filterCat, setFilterCat] = useState('');
@@ -183,6 +184,74 @@ export default function Reports() {
         return matchCat && matchStatus;
       });
   }, [products, filterCat, filterStatus, productStats, suppliers]);
+
+  // 5. Análisis ABC de los Productos Almacenados
+  const abcAnalysis = useMemo(() => {
+    const items = consolidatedProducts.map(p => {
+      const value = (p.price || 0) * (p.totalStock || 0);
+      return {
+        id: p.id,
+        sku: p.sku || '—',
+        name: p.name,
+        categoryId: p.categoryId,
+        stock: p.totalStock || 0,
+        price: p.price || 0,
+        unit: p.unit || 'Unidad',
+        value: value
+      };
+    });
+
+    // Ordenar de mayor a menor valor
+    items.sort((a, b) => b.value - a.value);
+
+    // Sumar el valor total de todo el inventario
+    const totalInventoryValue = items.reduce((sum, item) => sum + item.value, 0);
+
+    // Calcular porcentaje y porcentaje acumulado
+    let cumulativeValue = 0;
+    const finalItems = items.map((item) => {
+      cumulativeValue += item.value;
+      const pct = totalInventoryValue > 0 ? (item.value / totalInventoryValue) * 100 : 0;
+      const cumulativePct = totalInventoryValue > 0 ? (cumulativeValue / totalInventoryValue) * 100 : 0;
+
+      // Clasificación ABC estándar:
+      // A: hasta el 80% del valor acumulado
+      // B: del 80% al 95%
+      // C: del 95% al 100%
+      let classification = 'C';
+      if (cumulativePct <= 80) {
+        classification = 'A';
+      } else if (cumulativePct <= 95) {
+        classification = 'B';
+      }
+
+      return {
+        ...item,
+        percentage: pct,
+        cumulativePercentage: cumulativePct,
+        classification: classification
+      };
+    });
+
+    // Agrupar estadísticas por categoría A, B, C
+    const stats = {
+      A: { count: 0, totalValue: 0, items: [] },
+      B: { count: 0, totalValue: 0, items: [] },
+      C: { count: 0, totalValue: 0, items: [] }
+    };
+
+    finalItems.forEach(item => {
+      stats[item.classification].count += 1;
+      stats[item.classification].totalValue += item.value;
+      stats[item.classification].items.push(item);
+    });
+
+    return {
+      items: finalItems,
+      stats,
+      totalInventoryValue
+    };
+  }, [consolidatedProducts]);
 
   const filteredMovements = useMemo(() => {
     const now = new Date();
@@ -305,7 +374,27 @@ export default function Reports() {
         </button>
       </div>
 
-      {/* Filters Bar */}
+      {/* Tabs Selector */}
+      <div className="reports-tabs mb-16">
+        <button 
+          className={`report-tab-btn ${activeTab === 'general' ? 'active' : ''}`}
+          onClick={() => setActiveTab('general')}
+        >
+          <BarChart3 size={16} />
+          <span>Vista General</span>
+        </button>
+        <button 
+          className={`report-tab-btn ${activeTab === 'abc' ? 'active' : ''}`}
+          onClick={() => setActiveTab('abc')}
+        >
+          <Layers size={16} />
+          <span>Análisis ABC</span>
+        </button>
+      </div>
+
+      {activeTab === 'general' ? (
+        <>
+          {/* Filters Bar */}
       <div className="card filter-bar mb-24">
         <div className="filter-group">
           <TrendingUp size={16} className="text-primary" />
@@ -581,6 +670,186 @@ export default function Reports() {
           </div>
         </div>
       </div>
+      </>
+      ) : (
+        <>
+          {/* ABC Analysis View */}
+          <div className="abc-summary-grid mb-24 animate-fade">
+            <div className="card kpi-card">
+              <div className="kpi-icon-wrap" style={{ background: 'rgba(16, 185, 129, 0.15)' }}>
+                <Layers size={20} className="text-success" />
+              </div>
+              <div className="kpi-info">
+                <span className="kpi-label">Zona A (Crítico / Alto Valor)</span>
+                <span className="kpi-value">S/ {(abcAnalysis.stats.A.totalValue || 0).toLocaleString('es-PE')}</span>
+                <span className="kpi-trend text-success">
+                  {abcAnalysis.stats.A.count} prod. ({abcAnalysis.totalInventoryValue > 0 ? ((abcAnalysis.stats.A.totalValue / abcAnalysis.totalInventoryValue) * 100).toFixed(1) : 0}%)
+                </span>
+              </div>
+            </div>
+            <div className="card kpi-card">
+              <div className="kpi-icon-wrap" style={{ background: 'rgba(245, 158, 11, 0.15)' }}>
+                <Layers size={20} className="text-warning" />
+              </div>
+              <div className="kpi-info">
+                <span className="kpi-label">Zona B (Medio / Intermedio)</span>
+                <span className="kpi-value">S/ {(abcAnalysis.stats.B.totalValue || 0).toLocaleString('es-PE')}</span>
+                <span className="kpi-trend text-warning">
+                  {abcAnalysis.stats.B.count} prod. ({abcAnalysis.totalInventoryValue > 0 ? ((abcAnalysis.stats.B.totalValue / abcAnalysis.totalInventoryValue) * 100).toFixed(1) : 0}%)
+                </span>
+              </div>
+            </div>
+            <div className="card kpi-card">
+              <div className="kpi-icon-wrap" style={{ background: 'rgba(239, 68, 68, 0.15)' }}>
+                <Layers size={20} className="text-danger" />
+              </div>
+              <div className="kpi-info">
+                <span className="kpi-label">Zona C (Excedente / Bajo Valor)</span>
+                <span className="kpi-value">S/ {(abcAnalysis.stats.C.totalValue || 0).toLocaleString('es-PE')}</span>
+                <span className="kpi-trend text-danger">
+                  {abcAnalysis.stats.C.count} prod. ({abcAnalysis.totalInventoryValue > 0 ? ((abcAnalysis.stats.C.totalValue / abcAnalysis.totalInventoryValue) * 100).toFixed(1) : 0}%)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="charts-main-grid mb-24 animate-fade">
+            {/* ABC Value Distribution Pie */}
+            <div className="card chart-card">
+              <h2 className="chart-title">Distribución por Valor Monetario (ABC)</h2>
+              <div className="chart-content">
+                <ResponsiveContainer width="70%" height={260}>
+                  <PieChart>
+                    <Pie 
+                      data={[
+                        { name: 'Zona A', value: abcAnalysis.stats.A.totalValue || 0, color: '#10b981' },
+                        { name: 'Zona B', value: abcAnalysis.stats.B.totalValue || 0, color: '#f59e0b' },
+                        { name: 'Zona C', value: abcAnalysis.stats.C.totalValue || 0, color: '#ef4444' }
+                      ].filter(d => d.value > 0)}
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={60} 
+                      outerRadius={85} 
+                      paddingAngle={8} 
+                      dataKey="value" 
+                      stroke="none"
+                    >
+                      <Cell fill="#10b981" />
+                      <Cell fill="#f59e0b" />
+                      <Cell fill="#ef4444" />
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                
+                <div className="pie-stats-table">
+                  <div className="pie-stat-row">
+                    <span className="abc-badge class-a">A</span>
+                    <span className="fw-700 text-success">{abcAnalysis.stats.A.count} prod.</span>
+                  </div>
+                  <div className="pie-stat-row">
+                    <span className="abc-badge class-b">B</span>
+                    <span className="fw-700 text-warning">{abcAnalysis.stats.B.count} prod.</span>
+                  </div>
+                  <div className="pie-stat-row">
+                    <span className="abc-badge class-c">C</span>
+                    <span className="fw-700 text-danger">{abcAnalysis.stats.C.count} prod.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Explanatory Info Card */}
+            <div className="card chart-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
+                <Info size={20} className="text-primary" />
+                <h3 style={{ fontSize: '15px', fontWeight: 700 }}>¿Qué es el Análisis ABC?</h3>
+              </div>
+              <p style={{ fontSize: '12px', lineHeight: '1.6', color: 'var(--text-muted)' }}>
+                Clasificación de productos basada en el <b>Principio de Pareto (regla del 80/20)</b> para priorizar el control y toma de decisiones en inventarios.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
+                <div style={{ display: 'flex', gap: '12px', fontSize: '11px', lineHeight: '1.4' }}>
+                  <span className="abc-badge class-a" style={{ alignSelf: 'flex-start', minWidth: '22px' }}>A</span>
+                  <div>
+                    <b>Alta Importancia:</b> Representan ~80% del valor total. Requieren controles estrictos, auditorías continuas y compras programadas de alta precisión.
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', fontSize: '11px', lineHeight: '1.4' }}>
+                  <span className="abc-badge class-b" style={{ alignSelf: 'flex-start', minWidth: '22px' }}>B</span>
+                  <div>
+                    <b>Importancia Media:</b> Representan ~15% del valor total. Monitoreo regular y control intermedio de inventarios.
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', fontSize: '11px', lineHeight: '1.4' }}>
+                  <span className="abc-badge class-c" style={{ alignSelf: 'flex-start', minWidth: '22px' }}>C</span>
+                  <div>
+                    <b>Baja Importancia:</b> Representan ~5% del valor total pero son el volumen más grande de artículos. Control simplificado, compras por volumen.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Full Classification Table */}
+          <div className="card table-card full-width animate-fade">
+            <div className="chart-header">
+              <h2 className="chart-title">Clasificación Detallada de Inventario Almacenado</h2>
+              <p className="text-muted" style={{ fontSize: '11px' }}>Ordenado en forma descendente por valor monetario de inventario (Stock × Precio)</p>
+            </div>
+            <div className="table-wrapper">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Precio Unit.</th>
+                    <th>Valor Total</th>
+                    <th>% Part.</th>
+                    <th>% Acumulado</th>
+                    <th style={{ textAlign: 'center' }}>Clase ABC</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {abcAnalysis.items.map((item, idx) => {
+                    const cat = getCategoryById(item.categoryId);
+                    return (
+                      <tr key={item.id || idx}>
+                        <td className="fw-600 text-primary">{item.sku}</td>
+                        <td className="fw-600">{item.name}</td>
+                        <td>
+                          {cat ? (
+                            <span className="badge" style={{ background: cat.color + '22', color: cat.color }}>
+                              {cat.name}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td>{item.stock} {abreviar(item.unit)}</td>
+                        <td>S/ {(item.price || 0).toLocaleString('es-PE')}</td>
+                        <td className="fw-700">S/ {(item.value || 0).toLocaleString('es-PE')}</td>
+                        <td className="text-muted">{item.percentage.toFixed(2)}%</td>
+                        <td className="text-muted">{item.cumulativePercentage.toFixed(2)}%</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className={`abc-badge class-${item.classification.toLowerCase()}`}>
+                            Clase {item.classification}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {abcAnalysis.items.length === 0 && (
+                    <tr>
+                      <td colSpan="9" className="text-center py-20 text-muted">No hay productos almacenados disponibles para clasificar</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
