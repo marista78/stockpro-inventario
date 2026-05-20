@@ -208,6 +208,7 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
   const [form, setForm] = useState(editData ? {
     ...editData,
     loteMode: 'existing',
+    newBatchProvider: products.find(p => p.id === editData.productId)?.provider || '',
   } : { 
     type: 'entrada',
     productId: '',
@@ -513,46 +514,90 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
 
                 <div className="card p-16 bg-secondary-glow mb-24" style={{ opacity: isEditing ? 0.6 : 1, pointerEvents: isEditing ? 'none' : 'auto' }}>
                   {form.loteMode === 'existing' ? (
-                    <div className="input-group mb-0">
-                      <label className="input-label">Elegir lote activo *</label>
-                      <select 
-                        className={`input ${form.productId === 'AUTO_FIFO' ? 'border-primary' : ''}`}
-                        value={form.productId} 
-                        onChange={e => set('productId', e.target.value)} 
-                        disabled={!selectedProductBase || isEditing}
-                      >
-                        <option value="">Seleccionar lote...</option>
-                        {form.type === 'salida' && totalStock > 0 && !isEditing && (
-                          <option value="AUTO_FIFO" style={{ fontWeight: 'bold', color: 'var(--primary)' }}>
-                            ⚡ [AUTO] Distribuir entre lotes (FIFO/FEFO)
-                          </option>
+                    form.type === 'entrada' ? (
+                      <div className="grid-2">
+                        <div className="input-group mb-0">
+                          <label className="input-label">Elegir lote activo *</label>
+                          <select 
+                            className={`input ${form.productId === 'AUTO_FIFO' ? 'border-primary' : ''}`}
+                            value={form.productId} 
+                            onChange={e => {
+                              const val = e.target.value;
+                              set('productId', val);
+                              const selBatch = batchesForProduct.find(b => b.id === val);
+                              if (selBatch) {
+                                set('newBatchProvider', selBatch.provider || '');
+                              }
+                            }} 
+                            disabled={!selectedProductBase || isEditing}
+                          >
+                            <option value="">Seleccionar lote...</option>
+                            {isEditing ? (
+                              <option value={editData.productId}>{editData.batch || 'General'}</option>
+                            ) : batchesForProduct.map(p => (
+                              <option key={p.id} value={p.id}>
+                                {p.batch || 'General'} — Stock: {p.stock} {abreviar(p.unit)} {p.expiryDate ? `(Vence: ${p.expiryDate})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="input-group mb-0">
+                          <label className="input-label">Proveedor</label>
+                          <select 
+                            className="input" 
+                            value={form.newBatchProvider} 
+                            onChange={e => set('newBatchProvider', e.target.value)}
+                            disabled={isEditing}
+                          >
+                            <option value="">Seleccionar proveedor...</option>
+                            {suppliers.map(s => (
+                              <option key={s.id} value={s.name}>{s.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="input-group mb-0">
+                        <label className="input-label">Elegir lote activo *</label>
+                        <select 
+                          className={`input ${form.productId === 'AUTO_FIFO' ? 'border-primary' : ''}`}
+                          value={form.productId} 
+                          onChange={e => set('productId', e.target.value)} 
+                          disabled={!selectedProductBase || isEditing}
+                        >
+                          <option value="">Seleccionar lote...</option>
+                          {form.type === 'salida' && totalStock > 0 && !isEditing && (
+                            <option value="AUTO_FIFO" style={{ fontWeight: 'bold', color: 'var(--primary)' }}>
+                              ⚡ [AUTO] Distribuir entre lotes (FIFO/FEFO)
+                            </option>
+                          )}
+                          {isEditing ? (
+                            <option value={editData.productId}>{editData.batch || 'General'}</option>
+                          ) : batchesForProduct.map(p => (
+                            <option key={p.id} value={p.id}>
+                              {p.batch || 'General'} — Stock: {p.stock} {abreviar(p.unit)} {p.expiryDate ? `(Vence: ${p.expiryDate})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                        {form.type === 'salida' && form.productId && form.productId !== 'AUTO_FIFO' && !isEditing && (
+                          (() => {
+                            const selBatch = batchesForProduct.find(b => b.id === form.productId);
+                            if (selBatch && parseInt(form.quantity) > selBatch.stock) {
+                              return (
+                                <div className="alert-inline alert-warning mt-8 fs-11">
+                                  <Info size={12} className="mr-4" />
+                                  Este lote no alcanza. El sistema solo tomará {selBatch.stock}. 
+                                  <button type="button" className="btn-link ml-4" onClick={() => set('productId', 'AUTO_FIFO')}>
+                                    Usar auto-distribución para los {form.quantity}
+                                  </button>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()
                         )}
-                        {isEditing ? (
-                          <option value={editData.productId}>{editData.batch || 'General'}</option>
-                        ) : batchesForProduct.map(p => (
-                          <option key={p.id} value={p.id}>
-                            {p.batch || 'General'} — Stock: {p.stock} {abreviar(p.unit)} {p.expiryDate ? `(Vence: ${p.expiryDate})` : ''}
-                          </option>
-                        ))}
-                      </select>
-                      {form.type === 'salida' && form.productId && form.productId !== 'AUTO_FIFO' && !isEditing && (
-                        (() => {
-                          const selBatch = batchesForProduct.find(b => b.id === form.productId);
-                          if (selBatch && parseInt(form.quantity) > selBatch.stock) {
-                            return (
-                              <div className="alert-inline alert-warning mt-8 fs-11">
-                                <Info size={12} className="mr-4" />
-                                Este lote no alcanza. El sistema solo tomará {selBatch.stock}. 
-                                <button type="button" className="btn-link ml-4" onClick={() => set('productId', 'AUTO_FIFO')}>
-                                  Usar auto-distribución para los {form.quantity}
-                                </button>
-                              </div>
-                            );
-                          }
-                          return null;
-                        })()
-                      )}
-                    </div>
+                      </div>
+                    )
                   ) : (
                     <div className="grid-2">
                       <div className="input-group mb-0"><label className="input-label">Código *</label><input className="input" value={form.newBatchCode} onChange={e => set('newBatchCode', e.target.value)} /></div>

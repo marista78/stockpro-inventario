@@ -247,7 +247,50 @@ export function InventoryProvider({ children }) {
 
   // Stock Movements
   const addMovement = useCallback(async (mov) => {
-    const product = products.find(p => p.id === mov.productId);
+    let product;
+    const isNewBatch = mov.loteMode === 'new';
+
+    if (isNewBatch) {
+      const baseProduct = products.find(p => p.id === mov.productId);
+      if (!baseProduct) throw new Error('Producto base no encontrado');
+
+      const newProductData = {
+        ...baseProduct,
+        id: uuidv4(),
+        stock: 0,
+        price: Number(mov.purchasePrice) || baseProduct.price || 0,
+        batch: mov.newBatchCode,
+        provider: mov.newBatchProvider,
+        entryDate: mov.date ? mov.date.split('T')[0] : new Date().toISOString().split('T')[0],
+        expiryDate: null
+      };
+
+      const dbProduct = mapProductToDB(newProductData);
+
+      const { data: insertedProduct, error: prodInsertError } = await supabase
+        .from('products')
+        .insert([dbProduct])
+        .select()
+        .single();
+
+      if (prodInsertError) throw prodInsertError;
+
+      product = {
+        ...insertedProduct,
+        categoryId: insertedProduct.category_id,
+        minStock: insertedProduct.min_stock,
+        expiryDate: insertedProduct.expiry_date,
+        entryDate: insertedProduct.entry_date,
+        image: insertedProduct.image_url,
+        imageUrl: insertedProduct.image_url
+      };
+
+      setProducts(prev => [...prev, product]);
+      mov.productId = product.id;
+    } else {
+      product = products.find(p => p.id === mov.productId);
+    }
+
     if (!product) throw new Error('Producto no encontrado');
     
     const currentStock = Number(product.stock || 0);
@@ -274,7 +317,8 @@ export function InventoryProvider({ children }) {
       .from('products')
       .update({ 
         stock: newQty,
-        price: newPrice 
+        price: newPrice,
+        provider: mov.newBatchProvider || product.provider || ''
       })
       .eq('id', mov.productId);
       
@@ -295,7 +339,7 @@ export function InventoryProvider({ children }) {
     if (movError) throw movError;
 
     const mappedMov = { ...movData, productId: movData.product_id, productName: movData.product_name };
-    setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: newQty, price: newPrice } : p));
+    setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: newQty, price: newPrice, provider: mov.newBatchProvider || p.provider || '' } : p));
     setMovements(prev => [mappedMov, ...prev]);
     return mappedMov;
   }, [products]);
