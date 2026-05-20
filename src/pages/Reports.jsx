@@ -43,7 +43,7 @@ const CustomTooltip = ({ active, payload, label }) => {
           {payload.map(p => (
             <p key={p.name} className="tooltip-item">
               <span className="dot" style={{ background: p.color }}></span>
-              {p.name}: <span className="val">{p.name.includes('Valor') || p.name.includes('Precio') ? `${p.value.toLocaleString('es-PE')} S/` : p.value}</span>
+              {p.name}: <span className="val">{p.name.includes('Valor') || p.name.includes('Precio') ? `S/ ${p.value.toLocaleString('es-PE')}` : p.value}</span>
             </p>
           ))}
         </div>
@@ -354,7 +354,7 @@ export default function Reports() {
           </div>
           <div className="kpi-info">
             <span className="kpi-label">Valor del Inventario</span>
-            <span className="kpi-value">{totalValue.toLocaleString('es-PE')} S/</span>
+            <span className="kpi-value">S/ {totalValue.toLocaleString('es-PE')}</span>
             <span className="kpi-trend text-success">Total acumulado</span>
           </div>
         </div>
@@ -436,7 +436,7 @@ export default function Reports() {
               <BarChart data={stockByCategory} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${v > 1000 ? (v/1000).toFixed(0)+'k' : v} S/`} />
+                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `S/ ${v > 1000 ? (v/1000).toFixed(0)+'k' : v}`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="Valor" fill="var(--primary)" radius={[6, 6, 0, 0]}>
                   {stockByCategory.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
@@ -517,7 +517,7 @@ export default function Reports() {
                       <td className="text-muted">{p.leadTime || 0} días</td>
                       <td className="fw-700 text-primary">{p.effectiveMin} {abreviar(p.unit)}</td>
                       <td className="text-danger fw-700">{missing} {abreviar(p.unit)}</td>
-                      <td className="fw-700">{(missing * p.price).toLocaleString('es-PE')} S/</td>
+                      <td className="fw-700">S/ {(missing * p.price).toLocaleString('es-PE')}</td>
                     </tr>
                   );
                 })}
@@ -565,8 +565,8 @@ export default function Reports() {
                         ) : '—'}
                       </td>
                       <td className="fw-700">{p.totalStock} {abreviar(p.unit)}</td>
-                      <td>{(p.price || 0).toLocaleString('es-PE')} S/</td>
-                      <td className="fw-700 text-danger">{(p.totalStock * p.price).toLocaleString('es-PE')} S/</td>
+                      <td>S/ {(p.price || 0).toLocaleString('es-PE')}</td>
+                      <td className="fw-700 text-danger">S/ {(p.totalStock * p.price).toLocaleString('es-PE')}</td>
                       <td><span className="badge badge-muted">SIN ROTACIÓN</span></td>
                     </tr>
                   );

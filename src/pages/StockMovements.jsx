@@ -160,10 +160,10 @@ function TicketModal({ ticketData, onClose, shopName }) {
 
               <div style={{ borderTop: '1px double #000', marginTop: '10px', paddingTop: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '3px' }}>
-                  <span>Subtotal:</span><span>{total.toFixed(2)} S/</span>
+                  <span>Subtotal:</span><span>S/ {total.toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 900, marginTop: '4px' }}>
-                  <span>TOTAL:</span><span>{total.toFixed(2)} S/</span>
+                  <span>TOTAL:</span><span>S/ {total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -485,10 +485,10 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                   <div className="auto-summary-box mt-20">
                     <div className="preview-label mb-12">RESUMEN AUTOMÁTICO</div>
                     <div className="summary-row"><span>Cantidad</span><span className="fw-700">{form.quantity || 0}</span></div>
-                    <div className="summary-row"><span>Precio unitario</span><span>{(parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0).toFixed(2)} S/</span></div>
+                    <div className="summary-row"><span>Precio unitario</span><span>S/ {(parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0).toFixed(2)}</span></div>
                     <div className="summary-total">
                       <span className="total-label">TOTAL</span>
-                      <span className="total-val">{totalCalculated.toLocaleString('es-PE', { minimumFractionDigits: 2 })} S/</span>
+                      <span className="total-val">S/ {totalCalculated.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
                     </div>
                   </div>
                 </div>
