@@ -94,6 +94,10 @@ La aplicación utiliza **localStorage**. Esto significa que los datos se guardan
 - **Rediseño de Modal de Movimientos:** Unificación de columnas para eliminar espacios vacíos. Secciones 1 y 3 (Producto y Cantidad) ahora fluyen en la columna izquierda, mientras que las secciones 2, 4, 5, 6 y 7 (Lote, Motivo, Fecha, Responsable y Notas) se agrupan en la derecha para un diseño ultra-compacto.
 - **Eliminación Automática de Lotes:** Los lotes (batches) que llegan a stock 0 se ocultan automáticamente de la vista de Inventario y de la selección de movimientos. Esto mantiene la interfaz limpia de registros agotados, permitiendo que el usuario se enfoque solo en lo disponible.
 - **Trazabilidad en Edición:** A pesar de estar ocultos, los registros se mantienen en la base de datos para permitir la edición y eliminación de movimientos históricos (reversión de stock).
+- **Reposicionamiento del Símbolo Monetario:** Se reubicó el símbolo monetario peruano (`S/`) colocándolo de manera prefijada adelante de todos los montos de precio en la aplicación (ej. `S/ 15.00` en lugar de `15.00 S/`), abarcando Dashboard, Inventario, Movimientos (incluyendo boleta térmica/ticket), Reportes y Escáner QR.
+- **Proveedor y Creación de Lotes en Entrada de Mercadería:**
+    - **Selector de Proveedor Integrado:** Se añadió un selector de proveedor en el modal de registro de movimientos de tipo entrada. En lotes existentes, se muestra dinámicamente al lado del selector de lote activo en formato de 2 columnas (`grid-2`), precargando y sincronizando el proveedor asociado por defecto. En lotes nuevos, se mantiene consistente visualmente en paralelo al código de lote.
+    - **Soporte de Inserción de Nuevos Lotes en Supabase:** Se completó y corrigió la función `addMovement` en el contexto de inventario, permitiendo insertar una nueva fila independiente en la tabla `products` para registrar de manera real y persistente un nuevo lote con su código, precio de compra y proveedor en Supabase, evitando fallos de producto no encontrado.
 
 ---
 
@@ -148,5 +152,5 @@ Se ha transformado la visualización de productos en una experiencia mucho más 
 
 ---
 
-**Última actualización:** 10 de mayo de 2026 (Personalización, Navegación Premium y Persistencia)
+**Última actualización:** 19 de mayo de 2026 (Moneda al inicio, Proveedor en entrada y creación de lotes en Supabase)
 
