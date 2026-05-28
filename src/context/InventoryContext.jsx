@@ -372,6 +372,7 @@ export function InventoryProvider({ children }) {
       .single();
       
     if (movError) throw movError;
+    if (!movData) throw new Error('No se recibió confirmación del movimiento desde la base de datos.');
 
     const mappedMov = mapMovementFromDB(movData);
     setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: newQty, price: newPrice, provider: mov.newBatchProvider || p.provider || '' } : p));
@@ -424,6 +425,7 @@ export function InventoryProvider({ children }) {
         .select()
         .single();
       if (insertMovError) throw insertMovError;
+      if (!insertedMov) throw new Error('No se recibió confirmación de la devolución desde la base de datos.');
 
       const mappedInsertedMov = mapMovementFromDB(insertedMov);
 
@@ -461,6 +463,7 @@ export function InventoryProvider({ children }) {
     const { data, error } = await supabase.from('movements').update(dbUpdates).eq('id', id).select().single();
     
     if (error) throw error;
+    if (!data) throw new Error('No se recibió confirmación de la actualización desde la base de datos.');
 
     const mappedMov = mapMovementFromDB(data);
     setProducts(prev => prev.map(p => p.id === oldMov.productId ? { ...p, stock: newQty } : p));
@@ -504,6 +507,7 @@ export function InventoryProvider({ children }) {
 
       const { data: movData, error } = await supabase.from('movements').insert([dbMov]).select().single();
       if (error) throw error;
+      if (!movData) throw new Error('No se recibió confirmación del movimiento multilote desde la base de datos.');
 
       movementsToInsert.push(mapMovementFromDB(movData));
       updatedProductStates.push({ id: batch.id, stock: newBatchStock });

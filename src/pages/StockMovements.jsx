@@ -24,6 +24,19 @@ const UNIT_ABBR = {
 
 const abreviar = (unit) => UNIT_ABBR[unit] || unit;
 
+const formatSafeDate = (dateStr, fallback = '—') => {
+  if (!dateStr) return fallback;
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) {
+      return fallback;
+    }
+    return format(d, 'dd/MM/yyyy HH:mm');
+  } catch (e) {
+    return fallback;
+  }
+};
+
 /* ─────────────────────────────────────────────
    TICKET MODAL — Papel térmico de salida
 ───────────────────────────────────────────── */
@@ -130,7 +143,7 @@ function TicketModal({ ticketData, onClose, shopName }) {
 
               {/* Meta datos */}
               <div style={{ fontSize: '10px', lineHeight: '1.8' }}>
-                <div><b>Fecha:</b> {ticketData.date ? format(new Date(ticketData.date), 'dd/MM/yyyy HH:mm') : format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+                <div><b>Fecha:</b> {formatSafeDate(ticketData.date, format(new Date(), 'dd/MM/yyyy HH:mm'))}</div>
                 <div><b>Cajero:</b> {ticketData.responsible || '—'}</div>
                 {ticketData.buyerName    && <div><b>Cliente:</b>    {ticketData.buyerName}</div>}
                 {ticketData.buyerDocument && <div><b>Doc. ({ticketData.voucherType === 'Factura' ? 'RUC' : 'DNI'}):</b> {ticketData.buyerDocument}</div>}
@@ -780,7 +793,7 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                   <tbody>
                     {productHistory.map(m => (
                       <tr key={m.id}>
-                        <td>{m.date ? format(new Date(m.date), 'dd/MM/yyyy HH:mm') : '—'}</td>
+                        <td>{formatSafeDate(m.date)}</td>
                         <td><span className={`mov-type ${m.type} fs-10`}>{m.type === 'entrada' ? 'Entrada' : 'Salida'}</span></td>
                         <td><span className="batch-tag">{m.batch}</span></td>
                         <td className={`fw-700 ${m.type === 'entrada' ? 'text-success' : 'text-danger'}`}>{m.type === 'entrada' ? '+' : '-'}{m.quantity}</td>
@@ -854,6 +867,14 @@ export default function StockMovements() {
   const [filterType, setFilterType] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  const formatSafeDate = (d) => {
+    try {
+      if (!d) return '—';
+      const date = new Date(d);
+      return isNaN(date.getTime()) ? '—' : format(date, 'dd/MM/yyyy HH:mm');
+    } catch { return '—'; }
+  };
 
   const canManage = user?.role === 'admin' || user?.permissions?.movements;
 
@@ -1037,7 +1058,7 @@ export default function StockMovements() {
                     style={{ cursor: canManage ? 'pointer' : 'default' }}
                     title={canManage ? 'Doble clic para editar' : ''}
                   >
-                    <td className="text-muted">{m.date ? format(new Date(m.date), "dd/MM/yyyy HH:mm") : '—'}</td>
+                    <td className="text-muted">{formatSafeDate(m.date)}</td>
                     <td className="fw-500 text-primary">{product?.sku || '—'}</td>
                     <td className="fw-600">{m.productName}</td>
                     <td><span className={`mov-qty ${m.type}`}>{m.type === 'entrada' ? '+' : '-'}{m.quantity}</span></td>
