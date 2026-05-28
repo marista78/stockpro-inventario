@@ -201,7 +201,7 @@ function TicketModal({ ticketData, onClose, shopName }) {
 /* ─────────────────────────────────────────────
    MOVEMENT MODAL
 ───────────────────────────────────────────── */
-function MovementModal({ products, suppliers, onSave, onDelete, onClose, editData }) {
+function MovementModal({ products, suppliers, onSave, onDelete, onClose, editData, onPrintTicket }) {
   const { user, users } = useAuth();
   const isEditing = !!editData;
   const [selectedBaseProduct, setSelectedBaseProduct] = useState(isEditing ? products.find(p => p.id === editData.productId) : null);
@@ -260,11 +260,28 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
 
   // Correlativo auto-generado según tipo de comprobante y cantidad de movimientos registrados
   const { movements } = useInventory();
+  const { settings } = useSettings();
   const voucherSerial = useMemo(() => {
-    const salesCount = (movements || []).filter(m => m.type === 'salida' && m.reason === 'Venta').length + 1;
-    const num = String(salesCount).padStart(5, '0');
-    return form.voucherType === 'Factura' ? `F001-${num}` : `B001-${num}`;
-  }, [movements, form.voucherType]);
+    const isFactura = form.voucherType === 'Factura';
+    
+    // Count past sales of the selected type
+    const count = (movements || []).filter(m => {
+      if (m.type !== 'salida' || m.reason !== 'Venta') return false;
+      if (m.voucherType) {
+        return m.voucherType === form.voucherType;
+      }
+      // Fallback: assume Boleta is the default for older sales
+      return form.voucherType === 'Boleta';
+    }).length;
+
+    const startNumber = isFactura
+      ? Number(settings.ticketFacturaStart || 1)
+      : Number(settings.ticketBoletaStart || 1);
+
+    const nextNumber = startNumber + count;
+    const num = String(nextNumber).padStart(5, '0');
+    return isFactura ? `F001-${num}` : `B001-${num}`;
+  }, [movements, form.voucherType, settings.ticketBoletaStart, settings.ticketFacturaStart]);
   const productHistory = useMemo(() => {
     if (!selectedProductBase) return [];
     return (movements || [])
@@ -711,17 +728,32 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
 
           <div className="modal-footer" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-secondary)', display: 'flex', justifyContent: 'space-between' }}>
             {isEditing ? (
-              <button 
-                type="button" 
-                className="btn btn-danger" 
-                onClick={() => onDelete(editData)}
-                disabled={editData.observations?.startsWith('[ANULADO]')}
-                title={editData.observations?.startsWith('[ANULADO]') ? 'Este movimiento ya ha sido anulado' : ''}
-              >
-                {editData.observations?.startsWith('[ANULADO]') 
-                  ? 'Ya Anulado' 
-                  : (editData.type === 'salida' ? 'Anular y Devolver Stock' : 'Eliminar Registro')}
-              </button>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <button 
+                  type="button" 
+                  className="btn btn-danger" 
+                  onClick={() => onDelete(editData)}
+                  disabled={editData.observations?.startsWith('[ANULADO]')}
+                  title={editData.observations?.startsWith('[ANULADO]') ? 'Este movimiento ya ha sido anulado' : ''}
+                >
+                  {editData.observations?.startsWith('[ANULADO]') 
+                    ? 'Ya Anulado' 
+                    : (editData.type === 'salida' ? 'Anular y Devolver Stock' : 'Eliminar Registro')}
+                </button>
+                {editData.type === 'salida' && editData.reason === 'Venta' && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary animate-fade"
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    onClick={() => {
+                      onClose();
+                      if (onPrintTicket) onPrintTicket(editData);
+                    }}
+                  >
+                    <Printer size={16} /> Imprimir Ticket
+                  </button>
+                )}
+              </div>
             ) : <div />}
             <div className="flex gap-12">
               <button type="button" className="btn btn-secondary" onClick={onClose}>
@@ -965,6 +997,7 @@ export default function StockMovements() {
           onSave={handleSave} 
           onDelete={handleDelete}
           onClose={() => { setShowModal(false); setEditData(null); }} 
+          onPrintTicket={(data) => setTicketData(data)}
         />
       )}
 

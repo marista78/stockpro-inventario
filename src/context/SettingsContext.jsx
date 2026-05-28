@@ -9,7 +9,9 @@ export function SettingsProvider({ children }) {
     appIcon: 'Boxes',
     primaryColor: '#4f46e5',
     shopRuc: 'RUC: 20203040567',
-    shopAddress: 'mi direccion'
+    shopAddress: 'mi direccion',
+    ticketBoletaStart: 1,
+    ticketFacturaStart: 1
   });
   const [loading, setLoading] = useState(true);
 

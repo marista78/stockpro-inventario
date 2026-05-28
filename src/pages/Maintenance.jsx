@@ -37,7 +37,9 @@ export default function Maintenance() {
         updateSetting('primaryColor', brandingForm.primaryColor),
         updateSetting('appLogoUrl', brandingForm.appLogoUrl),
         updateSetting('shopRuc', brandingForm.shopRuc),
-        updateSetting('shopAddress', brandingForm.shopAddress)
+        updateSetting('shopAddress', brandingForm.shopAddress),
+        updateSetting('ticketBoletaStart', brandingForm.ticketBoletaStart !== undefined ? Number(brandingForm.ticketBoletaStart) : 1),
+        updateSetting('ticketFacturaStart', brandingForm.ticketFacturaStart !== undefined ? Number(brandingForm.ticketFacturaStart) : 1)
       ]);
       toast.success('Cambios de marca guardados con éxito');
     } catch (error) {
@@ -296,6 +298,44 @@ export default function Maintenance() {
               </div>
             </div>
             
+            <div className="divider"></div>
+            
+            {/* Configuración de Correlativos */}
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <LucideIcons.Hash size={16} className="text-primary" />
+                Inicio de Correlativos (Ventas)
+              </h3>
+              <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="input-group mb-0" style={{ marginBottom: 0 }}>
+                  <label className="input-label">Inicio Boleta (B001-xxxxx)</label>
+                  <div className="search-bar">
+                    <LucideIcons.Binary size={16} className="text-muted" />
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={brandingForm.ticketBoletaStart !== undefined ? brandingForm.ticketBoletaStart : 1} 
+                      onChange={e => setBrandingForm(prev => ({ ...prev, ticketBoletaStart: parseInt(e.target.value) || 1 }))}
+                      placeholder="Ej: 1"
+                    />
+                  </div>
+                </div>
+                <div className="input-group mb-0" style={{ marginBottom: 0 }}>
+                  <label className="input-label">Inicio Factura (F001-xxxxx)</label>
+                  <div className="search-bar">
+                    <LucideIcons.Binary size={16} className="text-muted" />
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={brandingForm.ticketFacturaStart !== undefined ? brandingForm.ticketFacturaStart : 1} 
+                      onChange={e => setBrandingForm(prev => ({ ...prev, ticketFacturaStart: parseInt(e.target.value) || 1 }))}
+                      placeholder="Ej: 1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="divider"></div>
             
             <div className="flex justify-between items-center mt-20">

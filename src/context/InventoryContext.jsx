@@ -46,11 +46,27 @@ export function InventoryProvider({ children }) {
         ...s,
         leadTime: s.lead_time
       })));
-      setMovements((movData || []).map(m => ({
-        ...m,
-        productId: m.product_id,
-        productName: m.product_name
-      })));
+      setMovements((movData || []).map(m => {
+        let extra = {};
+        let cleanObservations = m.observations || '';
+        if (m.observations && m.observations.includes('||JSON:')) {
+          try {
+            const parts = m.observations.split('||JSON:');
+            cleanObservations = parts[0].trim();
+            const jsonStr = parts[1].split('||')[0];
+            extra = JSON.parse(jsonStr);
+          } catch (e) {
+            console.error('Error parsing extra data in observations:', e);
+          }
+        }
+        return {
+          ...m,
+          productId: m.product_id,
+          productName: m.product_name,
+          observations: cleanObservations,
+          ...extra
+        };
+      }));
     } catch (err) {
       console.error('Error fetching data from Supabase:', err.message);
     } finally {
@@ -81,18 +97,34 @@ export function InventoryProvider({ children }) {
     provider: p.provider
   });
 
-  const mapMovementToDB = (m) => ({
-    id: m.id || uuidv4(),
-    product_id: m.productId,
-    type: m.type,
-    quantity: m.quantity,
-    reason: m.reason,
-    responsible: m.responsible,
-    date: m.date,
-    batch: m.batch,
-    product_name: m.productName,
-    observations: m.observations
-  });
+  const mapMovementToDB = (m) => {
+    let serializedObs = m.observations || '';
+    if (m.voucherType || m.voucherSerial || m.buyerName || m.buyerDocument) {
+      const extraData = {
+        voucherType: m.voucherType,
+        voucherSerial: m.voucherSerial,
+        buyerName: m.buyerName,
+        buyerDocument: m.buyerDocument
+      };
+      if (serializedObs.includes('||JSON:')) {
+        serializedObs = serializedObs.split('||JSON:')[0].trim();
+      }
+      serializedObs = `${serializedObs} ||JSON:${JSON.stringify(extraData)}||`.trim();
+    }
+
+    return {
+      id: m.id || uuidv4(),
+      product_id: m.productId,
+      type: m.type,
+      quantity: m.quantity,
+      reason: m.reason,
+      responsible: m.responsible,
+      date: m.date,
+      batch: m.batch,
+      product_name: m.productName,
+      observations: serializedObs
+    };
+  };
 
   const mapSupplierToDB = (s) => ({
     id: s.id || uuidv4(),
