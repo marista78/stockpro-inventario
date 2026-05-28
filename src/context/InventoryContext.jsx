@@ -344,7 +344,7 @@ export function InventoryProvider({ children }) {
     return mappedMov;
   }, [products]);
 
-  const deleteMovement = useCallback(async (id) => {
+  const deleteMovement = useCallback(async (id, currentUser = 'Sistema') => {
     const mov = movements.find(m => m.id === id);
     if (!mov) throw new Error('Movimiento no encontrado');
     
@@ -356,11 +356,60 @@ export function InventoryProvider({ children }) {
     const { error: prodError } = await supabase.from('products').update({ stock: revertedStock }).eq('id', mov.productId);
     if (prodError) throw prodError;
 
-    const { error: movError } = await supabase.from('movements').delete().eq('id', id);
-    if (movError) throw movError;
+    if (mov.type === 'salida') {
+      // Registrar un nuevo ingreso compensatorio e indicar que la salida ha sido anulada
+      const updatedOriginalObservations = `[ANULADO] ${mov.observations || ''}`.trim();
+      const { error: updateMovError } = await supabase
+        .from('movements')
+        .update({ observations: updatedOriginalObservations })
+        .eq('id', id);
+      if (updateMovError) throw updateMovError;
 
-    setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: revertedStock } : p));
-    setMovements(prev => prev.filter(m => m.id !== id));
+      const newMovId = uuidv4();
+      const newMovReason = mov.reason === 'Venta' ? 'Devolución Cliente' : 'Ajuste Positivo';
+      const newMovObservations = `Ingreso de compensación por anulación de salida ID: ${mov.id.slice(0, 8)}`;
+      const currentDate = new Date().toISOString();
+
+      const dbNewMov = {
+        id: newMovId,
+        product_id: mov.productId,
+        type: 'entrada',
+        quantity: mov.quantity,
+        reason: newMovReason,
+        responsible: currentUser,
+        date: currentDate,
+        batch: mov.batch || '',
+        product_name: mov.productName,
+        observations: newMovObservations
+      };
+
+      const { data: insertedMov, error: insertMovError } = await supabase
+        .from('movements')
+        .insert([dbNewMov])
+        .select()
+        .single();
+      if (insertMovError) throw insertMovError;
+
+      const mappedInsertedMov = { 
+        ...insertedMov, 
+        productId: insertedMov.product_id, 
+        productName: insertedMov.product_name 
+      };
+
+      setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: revertedStock } : p));
+      setMovements(prev => {
+        const updatedOriginal = { ...mov, observations: updatedOriginalObservations };
+        const withUpdatedOriginal = prev.map(m => m.id === id ? updatedOriginal : m);
+        return [mappedInsertedMov, ...withUpdatedOriginal];
+      });
+    } else {
+      // Comportamiento original para Entrada
+      const { error: movError } = await supabase.from('movements').delete().eq('id', id);
+      if (movError) throw movError;
+
+      setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: revertedStock } : p));
+      setMovements(prev => prev.filter(m => m.id !== id));
+    }
   }, [movements, products]);
 
   const updateMovement = useCallback(async (id, newData) => {

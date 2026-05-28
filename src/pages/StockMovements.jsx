@@ -711,8 +711,16 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
 
           <div className="modal-footer" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-secondary)', display: 'flex', justifyContent: 'space-between' }}>
             {isEditing ? (
-              <button type="button" className="btn btn-danger" onClick={() => onDelete(editData.id)}>
-                Eliminar Registro
+              <button 
+                type="button" 
+                className="btn btn-danger" 
+                onClick={() => onDelete(editData)}
+                disabled={editData.observations?.startsWith('[ANULADO]')}
+                title={editData.observations?.startsWith('[ANULADO]') ? 'Este movimiento ya ha sido anulado' : ''}
+              >
+                {editData.observations?.startsWith('[ANULADO]') 
+                  ? 'Ya Anulado' 
+                  : (editData.type === 'salida' ? 'Anular y Devolver Stock' : 'Eliminar Registro')}
               </button>
             ) : <div />}
             <div className="flex gap-12">
@@ -795,11 +803,16 @@ export default function StockMovements() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('¿Estás seguro de eliminar este movimiento? El stock será revertido.')) {
+  const handleDelete = async (mov) => {
+    const isSalida = mov.type === 'salida';
+    const confirmMsg = isSalida
+      ? '¿Estás seguro de anular esta salida? Se creará un nuevo movimiento de ingreso por devolución y el stock será devuelto.'
+      : '¿Estás seguro de eliminar este movimiento? El stock será revertido.';
+
+    if (window.confirm(confirmMsg)) {
       try {
-        await deleteMovement(id);
-        toast.success('Movimiento eliminado');
+        await deleteMovement(mov.id, user?.name || 'Sistema');
+        toast.success(isSalida ? 'Movimiento devuelto (ingreso registrado)' : 'Movimiento eliminado');
         setShowModal(false);
         setEditData(null);
       } catch (err) {
