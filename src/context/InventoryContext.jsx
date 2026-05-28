@@ -4,6 +4,29 @@ import { v4 as uuidv4 } from 'uuid';
 
 const InventoryContext = createContext(null);
 
+const mapMovementFromDB = (m) => {
+  if (!m) return null;
+  let extra = {};
+  let cleanObservations = m.observations || '';
+  if (m.observations && m.observations.includes('||JSON:')) {
+    try {
+      const parts = m.observations.split('||JSON:');
+      cleanObservations = parts[0].trim();
+      const jsonStr = parts[1].split('||')[0];
+      extra = JSON.parse(jsonStr);
+    } catch (e) {
+      console.error('Error parsing extra data in observations:', e);
+    }
+  }
+  return {
+    ...m,
+    productId: m.product_id,
+    productName: m.product_name,
+    observations: cleanObservations,
+    ...extra
+  };
+};
+
 export function InventoryProvider({ children }) {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
@@ -46,27 +69,7 @@ export function InventoryProvider({ children }) {
         ...s,
         leadTime: s.lead_time
       })));
-      setMovements((movData || []).map(m => {
-        let extra = {};
-        let cleanObservations = m.observations || '';
-        if (m.observations && m.observations.includes('||JSON:')) {
-          try {
-            const parts = m.observations.split('||JSON:');
-            cleanObservations = parts[0].trim();
-            const jsonStr = parts[1].split('||')[0];
-            extra = JSON.parse(jsonStr);
-          } catch (e) {
-            console.error('Error parsing extra data in observations:', e);
-          }
-        }
-        return {
-          ...m,
-          productId: m.product_id,
-          productName: m.product_name,
-          observations: cleanObservations,
-          ...extra
-        };
-      }));
+      setMovements((movData || []).map(mapMovementFromDB));
     } catch (err) {
       console.error('Error fetching data from Supabase:', err.message);
     } finally {
@@ -370,7 +373,7 @@ export function InventoryProvider({ children }) {
       
     if (movError) throw movError;
 
-    const mappedMov = { ...movData, productId: movData.product_id, productName: movData.product_name };
+    const mappedMov = mapMovementFromDB(movData);
     setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: newQty, price: newPrice, provider: mov.newBatchProvider || p.provider || '' } : p));
     setMovements(prev => [mappedMov, ...prev]);
     return mappedMov;
@@ -422,11 +425,7 @@ export function InventoryProvider({ children }) {
         .single();
       if (insertMovError) throw insertMovError;
 
-      const mappedInsertedMov = { 
-        ...insertedMov, 
-        productId: insertedMov.product_id, 
-        productName: insertedMov.product_name 
-      };
+      const mappedInsertedMov = mapMovementFromDB(insertedMov);
 
       setProducts(prev => prev.map(p => p.id === mov.productId ? { ...p, stock: revertedStock } : p));
       setMovements(prev => {
@@ -463,7 +462,7 @@ export function InventoryProvider({ children }) {
     
     if (error) throw error;
 
-    const mappedMov = { ...data, productId: data.product_id, productName: data.product_name };
+    const mappedMov = mapMovementFromDB(data);
     setProducts(prev => prev.map(p => p.id === oldMov.productId ? { ...p, stock: newQty } : p));
     setMovements(prev => prev.map(m => m.id === id ? mappedMov : m));
   }, [movements, products]);
@@ -506,7 +505,7 @@ export function InventoryProvider({ children }) {
       const { data: movData, error } = await supabase.from('movements').insert([dbMov]).select().single();
       if (error) throw error;
 
-      movementsToInsert.push({ ...movData, productId: movData.product_id, productName: movData.product_name });
+      movementsToInsert.push(mapMovementFromDB(movData));
       updatedProductStates.push({ id: batch.id, stock: newBatchStock });
       remaining -= take;
     }
