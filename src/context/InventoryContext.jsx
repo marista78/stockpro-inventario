@@ -115,6 +115,20 @@ export function InventoryProvider({ children }) {
       serializedObs = `${serializedObs} ||JSON:${JSON.stringify(extraData)}||`.trim();
     }
 
+    let dbDate = m.date;
+    if (dbDate) {
+      try {
+        const parsedDate = new Date(dbDate);
+        if (!isNaN(parsedDate.getTime())) {
+          dbDate = parsedDate.toISOString();
+        }
+      } catch (e) {
+        console.error('Error formatting date for Supabase:', e);
+      }
+    } else {
+      dbDate = new Date().toISOString();
+    }
+
     return {
       id: m.id || uuidv4(),
       product_id: m.productId,
@@ -122,7 +136,7 @@ export function InventoryProvider({ children }) {
       quantity: m.quantity,
       reason: m.reason,
       responsible: m.responsible,
-      date: m.date,
+      date: dbDate,
       batch: m.batch,
       product_name: m.productName,
       observations: serializedObs
