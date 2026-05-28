@@ -203,6 +203,7 @@ function TicketModal({ ticketData, onClose, shopName }) {
 ───────────────────────────────────────────── */
 function MovementModal({ products, suppliers, onSave, onDelete, onClose, editData, onPrintTicket }) {
   const { user, users } = useAuth();
+  const toast = useToast();
   const isEditing = !!editData;
   const [selectedBaseProduct, setSelectedBaseProduct] = useState(isEditing ? products.find(p => p.id === editData.productId) : null);
   const [form, setForm] = useState(editData ? {
@@ -302,12 +303,47 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.productId && form.loteMode === 'existing') return;
+    
+    if (!selectedProductBase) {
+      toast.error('Por favor, selecciona un producto.');
+      return;
+    }
+
+    if (!form.productId && form.loteMode === 'existing') {
+      toast.error('Por favor, selecciona un lote activo o auto-distribución.');
+      return;
+    }
+
+    const qty = parseInt(form.quantity);
+    if (isNaN(qty) || qty <= 0) {
+      toast.error('Por favor, ingresa una cantidad válida mayor a 0.');
+      return;
+    }
+
+    // Para salidas, verificar que haya stock disponible si no es AUTO_FIFO
+    if (form.type === 'salida') {
+      if (form.productId === 'AUTO_FIFO') {
+        if (totalStock < qty) {
+          toast.error(`Stock insuficiente. Solo hay ${totalStock} unidades disponibles en total.`);
+          return;
+        }
+      } else {
+        const selectedBatch = batchesForProduct.find(b => b.id === form.productId);
+        if (!selectedBatch) {
+          toast.error('Lote seleccionado no encontrado o no disponible.');
+          return;
+        }
+        if (selectedBatch.stock < qty) {
+          toast.error(`Stock insuficiente en el lote seleccionado. Solo hay ${selectedBatch.stock} unidades.`);
+          return;
+        }
+      }
+    }
     
     onSave({
       ...form,
       productName: selectedProductBase?.name,
-      quantity: parseInt(form.quantity),
+      quantity: qty,
       purchasePrice: parseFloat(form.newBatchPrice) || selectedProductBase?.price || 0,
       voucherSerial: (form.type === 'salida' && form.reason === 'Venta') ? voucherSerial : undefined,
     });
@@ -375,7 +411,14 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
               <button 
                 type="button" 
                 className={`large-type-btn entrada ${form.type === 'entrada' ? 'active' : ''}`}
-                onClick={() => setForm(p => ({ ...p, type: 'entrada', reason: 'Compra' }))}
+                onClick={() => setForm(prev => {
+                  let nextProductId = prev.productId;
+                  if (prev.productId === 'AUTO_FIFO' && selectedProductBase) {
+                    const firstBatch = products.find(x => x.name.trim().toLowerCase() === selectedProductBase.name.trim().toLowerCase());
+                    nextProductId = firstBatch ? firstBatch.id : '';
+                  }
+                  return { ...prev, type: 'entrada', reason: 'Compra', productId: nextProductId };
+                })}
               >
                 <ArrowUpCircle size={24} />
                 <div className="text-left">
@@ -386,7 +429,18 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
               <button 
                 type="button" 
                 className={`large-type-btn salida ${form.type === 'salida' ? 'active' : ''}`}
-                onClick={() => setForm(p => ({ ...p, type: 'salida', reason: 'Venta' }))}
+                onClick={() => setForm(prev => {
+                  let nextProductId = prev.productId;
+                  if (selectedProductBase) {
+                    const activeBatches = products.filter(x => 
+                      x.name.trim().toLowerCase() === selectedProductBase.name.trim().toLowerCase() && x.stock > 0
+                    );
+                    if (activeBatches.length > 0) {
+                      nextProductId = 'AUTO_FIFO';
+                    }
+                  }
+                  return { ...prev, type: 'salida', reason: 'Venta', productId: nextProductId };
+                })}
               >
                 <ArrowDownCircle size={24} />
                 <div className="text-left">
@@ -435,8 +489,19 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
                       {filteredProductsForSearch.map(p => (
                         <div key={p.id} className="search-result-item" onClick={() => { 
                           setSearchQuery(p.name); 
-                          set('productId', p.id); 
                           setSelectedBaseProduct(p);
+                          if (form.type === 'salida') {
+                            const activeBatches = products.filter(x => 
+                              x.name.trim().toLowerCase() === p.name.trim().toLowerCase() && x.stock > 0
+                            );
+                            if (activeBatches.length > 0) {
+                              set('productId', 'AUTO_FIFO');
+                            } else {
+                              set('productId', '');
+                            }
+                          } else {
+                            set('productId', p.id);
+                          }
                         }}>
                           <Package size={14} />
                           <span>{p.name}</span>
