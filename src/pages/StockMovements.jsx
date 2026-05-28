@@ -274,14 +274,20 @@ function MovementModal({ products, suppliers, onSave, onDelete, onClose, editDat
       return form.voucherType === 'Boleta';
     }).length;
 
+    const series = isFactura
+      ? String(settings.ticketFacturaSeries || '001').padStart(3, '0')
+      : String(settings.ticketBoletaSeries || '001').padStart(3, '0');
+
     const startNumber = isFactura
       ? Number(settings.ticketFacturaStart || 1)
       : Number(settings.ticketBoletaStart || 1);
 
     const nextNumber = startNumber + count;
     const num = String(nextNumber).padStart(5, '0');
-    return isFactura ? `F001-${num}` : `B001-${num}`;
-  }, [movements, form.voucherType, settings.ticketBoletaStart, settings.ticketFacturaStart]);
+    
+    const prefix = isFactura ? `F${series}` : `B${series}`;
+    return `${prefix}-${num}`;
+  }, [movements, form.voucherType, settings.ticketBoletaStart, settings.ticketFacturaStart, settings.ticketBoletaSeries, settings.ticketFacturaSeries]);
   const productHistory = useMemo(() => {
     if (!selectedProductBase) return [];
     return (movements || [])

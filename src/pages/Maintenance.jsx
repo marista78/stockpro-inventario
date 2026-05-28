@@ -30,6 +30,10 @@ export default function Maintenance() {
   const handleSaveBranding = async () => {
     try {
       setIsSaving(true);
+      
+      const boletaSeries = String(brandingForm.ticketBoletaSeries || '001').padStart(3, '0');
+      const facturaSeries = String(brandingForm.ticketFacturaSeries || '001').padStart(3, '0');
+
       // Actualizar cada setting en Supabase
       await Promise.all([
         updateSetting('appName', brandingForm.appName),
@@ -39,8 +43,18 @@ export default function Maintenance() {
         updateSetting('shopRuc', brandingForm.shopRuc),
         updateSetting('shopAddress', brandingForm.shopAddress),
         updateSetting('ticketBoletaStart', brandingForm.ticketBoletaStart !== undefined ? Number(brandingForm.ticketBoletaStart) : 1),
-        updateSetting('ticketFacturaStart', brandingForm.ticketFacturaStart !== undefined ? Number(brandingForm.ticketFacturaStart) : 1)
+        updateSetting('ticketFacturaStart', brandingForm.ticketFacturaStart !== undefined ? Number(brandingForm.ticketFacturaStart) : 1),
+        updateSetting('ticketBoletaSeries', boletaSeries),
+        updateSetting('ticketFacturaSeries', facturaSeries)
       ]);
+
+      // Update form values with padded formats
+      setBrandingForm(prev => ({
+        ...prev,
+        ticketBoletaSeries: boletaSeries,
+        ticketFacturaSeries: facturaSeries
+      }));
+
       toast.success('Cambios de marca guardados con éxito');
     } catch (error) {
       toast.error('Error al guardar: ' + error.message);
@@ -300,37 +314,83 @@ export default function Maintenance() {
             
             <div className="divider"></div>
             
-            {/* Configuración de Correlativos */}
+            {/* Configuración de Correlativos y Series */}
             <div style={{ marginBottom: '20px' }}>
               <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                 <LucideIcons.Hash size={16} className="text-primary" />
-                Inicio de Correlativos (Ventas)
+                Configuración de Series y Correlativos (Ventas)
               </h3>
-              <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div className="input-group mb-0" style={{ marginBottom: 0 }}>
-                  <label className="input-label">Inicio Boleta (B001-xxxxx)</label>
-                  <div className="search-bar">
-                    <LucideIcons.Binary size={16} className="text-muted" />
-                    <input 
-                      type="number" 
-                      min="1"
-                      value={brandingForm.ticketBoletaStart !== undefined ? brandingForm.ticketBoletaStart : 1} 
-                      onChange={e => setBrandingForm(prev => ({ ...prev, ticketBoletaStart: parseInt(e.target.value) || 1 }))}
-                      placeholder="Ej: 1"
-                    />
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Sección Boleta */}
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Comprobante: Boleta (B[Serie]-[Correlativo])</div>
+                  <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="input-group mb-0" style={{ marginBottom: 0 }}>
+                      <label className="input-label">Serie Boleta (3 dígitos)</label>
+                      <div className="search-bar">
+                        <LucideIcons.FileCode size={16} className="text-muted" />
+                        <input 
+                          type="text" 
+                          maxLength="3"
+                          value={brandingForm.ticketBoletaSeries !== undefined ? brandingForm.ticketBoletaSeries : '001'} 
+                          onChange={e => {
+                            const val = e.target.value.replace(/\D/g, ''); // Solo números
+                            setBrandingForm(prev => ({ ...prev, ticketBoletaSeries: val }));
+                          }}
+                          placeholder="Ej: 001"
+                        />
+                      </div>
+                    </div>
+                    <div className="input-group mb-0" style={{ marginBottom: 0 }}>
+                      <label className="input-label">Correlativo de Inicio</label>
+                      <div className="search-bar">
+                        <LucideIcons.Binary size={16} className="text-muted" />
+                        <input 
+                          type="number" 
+                          min="1"
+                          value={brandingForm.ticketBoletaStart !== undefined ? brandingForm.ticketBoletaStart : 1} 
+                          onChange={e => setBrandingForm(prev => ({ ...prev, ticketBoletaStart: parseInt(e.target.value) || 1 }))}
+                          placeholder="Ej: 1"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="input-group mb-0" style={{ marginBottom: 0 }}>
-                  <label className="input-label">Inicio Factura (F001-xxxxx)</label>
-                  <div className="search-bar">
-                    <LucideIcons.Binary size={16} className="text-muted" />
-                    <input 
-                      type="number" 
-                      min="1"
-                      value={brandingForm.ticketFacturaStart !== undefined ? brandingForm.ticketFacturaStart : 1} 
-                      onChange={e => setBrandingForm(prev => ({ ...prev, ticketFacturaStart: parseInt(e.target.value) || 1 }))}
-                      placeholder="Ej: 1"
-                    />
+
+                {/* Sección Factura */}
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Comprobante: Factura (F[Serie]-[Correlativo])</div>
+                  <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="input-group mb-0" style={{ marginBottom: 0 }}>
+                      <label className="input-label">Serie Factura (3 dígitos)</label>
+                      <div className="search-bar">
+                        <LucideIcons.FileCode size={16} className="text-muted" />
+                        <input 
+                          type="text" 
+                          maxLength="3"
+                          value={brandingForm.ticketFacturaSeries !== undefined ? brandingForm.ticketFacturaSeries : '001'} 
+                          onChange={e => {
+                            const val = e.target.value.replace(/\D/g, ''); // Solo números
+                            setBrandingForm(prev => ({ ...prev, ticketFacturaSeries: val }));
+                          }}
+                          placeholder="Ej: 001"
+                        />
+                      </div>
+                    </div>
+                    <div className="input-group mb-0" style={{ marginBottom: 0 }}>
+                      <label className="input-label">Correlativo de Inicio</label>
+                      <div className="search-bar">
+                        <LucideIcons.Binary size={16} className="text-muted" />
+                        <input 
+                          type="number" 
+                          min="1"
+                          value={brandingForm.ticketFacturaStart !== undefined ? brandingForm.ticketFacturaStart : 1} 
+                          onChange={e => setBrandingForm(prev => ({ ...prev, ticketFacturaStart: parseInt(e.target.value) || 1 }))}
+                          placeholder="Ej: 1"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

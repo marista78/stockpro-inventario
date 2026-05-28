@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 const SettingsContext = createContext(null);
 
 export function SettingsProvider({ children }) {
+
   const [settings, setSettings] = useState({
     appName: 'StockPro',
     appIcon: 'Boxes',
@@ -11,7 +12,9 @@ export function SettingsProvider({ children }) {
     shopRuc: 'RUC: 20203040567',
     shopAddress: 'mi direccion',
     ticketBoletaStart: 1,
-    ticketFacturaStart: 1
+    ticketFacturaStart: 1,
+    ticketBoletaSeries: '001',
+    ticketFacturaSeries: '001'
   });
   const [loading, setLoading] = useState(true);
 
