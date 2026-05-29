@@ -58,8 +58,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // ✅ Sin js — evita el error de tamaño
-        globPatterns: ['**/*.{css,html,ico,png,svg,woff2}'],
+        // ✅ Incluye js para que la aplicación cargue offline y no quede en blanco
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         maximumFileSizeToCacheInBytes: 5242880,
       },
     })
