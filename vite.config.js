@@ -68,6 +68,20 @@ export default defineConfig({
             purpose: 'maskable'
           }
         ],
+        screenshots: [
+          {
+            src: 'screenshots/desktop.png',
+            sizes: '1280x800',
+            type: 'image/png',
+            form_factor: 'wide'
+          },
+          {
+            src: 'screenshots/mobile.png',
+            sizes: '390x844',
+            type: 'image/png',
+            form_factor: 'narrow'
+          }
+        ],
       },
       workbox: {
         // ✅ Incluye js para que la aplicación cargue offline y no quede en blanco
