@@ -1,0 +1,295 @@
+/* ============================================================
+   STOCKPRO — RESPONSIVE FIXES
+   Agregar al FINAL de index.css, Dashboard.css e Inventory.css
+   ============================================================ */
+
+/* ══════════════════════════════════════════════════════════
+   1. AGREGAR AL FINAL DE index.css
+   ══════════════════════════════════════════════════════════ */
+
+/* Botón hamburguesa para abrir sidebar en móvil */
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Overlay oscuro detrás del sidebar abierto en móvil */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: hsla(222, 47%, 3%, 0.6);
+  z-index: 99;
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 768px) {
+  /* Layout principal */
+  :root { --sidebar-w: 0px; }
+
+  .main-content {
+    margin-left: 0;
+    max-width: 100vw;
+  }
+
+  .page-content {
+    padding: 12px;
+  }
+
+  /* Sidebar deslizante */
+  .sidebar {
+    transform: translateX(-260px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-overlay.visible {
+    display: block;
+  }
+
+  /* Botón hamburguesa visible */
+  .menu-toggle {
+    display: flex;
+  }
+
+  /* Page header: título arriba, botones abajo */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .page-header > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .page-header .btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .page-title { font-size: 20px; }
+
+  /* Grids: 1 columna en móvil */
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stats: 2 columnas en móvil */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card-value { font-size: 22px; }
+
+  /* Modal: ocupa toda la pantalla */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 20px 16px;
+  }
+
+  .modal-lg {
+    max-width: 100%;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Tabla: scroll horizontal */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(100vh - 280px);
+  }
+
+  /* Toast: ancho completo en móvil */
+  .toast-container {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+  }
+  .toast {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* Filter bar: columna en móvil */
+  .filter-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filter-group {
+    width: 100%;
+    height: auto;
+    padding: 10px 14px;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Stats: 1 columna en pantallas muy pequeñas */
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-content {
+    padding: 10px;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   2. AGREGAR AL FINAL DE Dashboard.css
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Tabla de actividad reciente: scroll horizontal */
+  .dashboard-chart-card .table-wrapper,
+  .card .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Chart más compacto */
+  .dashboard-chart-card .recharts-responsive-container {
+    height: 220px !important;
+  }
+
+  /* Alertas en columna */
+  .alert-item {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .alert-stock {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   3. AGREGAR AL FINAL DE Inventory.css
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Modal detalle: imagen y stats en columna */
+  .detail-top-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .detail-image-box {
+    width: 140px;
+    height: 140px;
+  }
+
+  /* Stats de detalle: fila de 2 */
+  .detail-stats-col {
+    flex-direction: row;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .detail-qstat {
+    flex: 1;
+    padding: 10px 8px;
+  }
+
+  .detail-qstat .qvalue {
+    font-size: 15px;
+  }
+
+  /* Tech info: 1 columna */
+  .tech-info-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Flechas de navegación: dentro del modal */
+  .nav-arrow {
+    display: flex;
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav-arrow.prev { left: 4px; }
+  .nav-arrow.next { right: 4px; }
+
+  /* Modal lg en móvil */
+  .modal-lg.animate-slide {
+    padding: 16px 14px;
+  }
+
+  /* Batches table scroll */
+  .batches-table-mini {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Imagen editable: trigger siempre visible en móvil (no hover) */
+  .edit-image-trigger {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-stats-col {
+    flex-direction: column;
+  }
+
+  .detail-qstat .qvalue {
+    font-size: 18px;
+  }
+}

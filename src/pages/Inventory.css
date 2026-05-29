@@ -331,3 +331,76 @@
 @media (max-width: 900px) {
   .nav-arrow { display: none; }
 }
+
+@media (max-width: 768px) {
+  /* Modal detalle: imagen y stats en columna */
+  .detail-top-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .detail-image-box {
+    width: 140px;
+    height: 140px;
+  }
+
+  /* Stats de detalle: fila de 2 */
+  .detail-stats-col {
+    flex-direction: row;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .detail-qstat {
+    flex: 1;
+    padding: 10px 8px;
+  }
+
+  .detail-qstat .qvalue {
+    font-size: 15px;
+  }
+
+  /* Tech info: 1 columna */
+  .tech-info-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Flechas de navegación: dentro del modal */
+  .nav-arrow {
+    display: flex;
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav-arrow.prev { left: 4px; }
+  .nav-arrow.next { right: 4px; }
+
+  /* Modal lg en móvil */
+  .modal-lg.animate-slide {
+    padding: 16px 14px;
+  }
+
+  /* Batches table scroll */
+  .batches-table-mini {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Imagen editable: trigger siempre visible en móvil (no hover) */
+  .edit-image-trigger {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-stats-col {
+    flex-direction: column;
+  }
+
+  .detail-qstat .qvalue {
+    font-size: 18px;
+  }
+}
