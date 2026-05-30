@@ -626,3 +626,9 @@ select.input { cursor: pointer; }
     padding: 10px;
   }
 }
+
+@media (max-width: 768px) {
+  .page-content {
+    padding-top: 60px;
+  }
+}
