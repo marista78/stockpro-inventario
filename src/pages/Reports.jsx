@@ -490,8 +490,8 @@ export default function Reports() {
             </div>
           </div>
           <div className="chart-content">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
+            <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 200 : 300}>
+              <LineChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -501,7 +501,7 @@ export default function Reports() {
                   dataKey="Entradas" 
                   stroke="var(--success)" 
                   strokeWidth={3} 
-                  dot={{ r: 4, fill: 'var(--success)', strokeWidth: 2, stroke: '#fff' }}
+                  dot={window.innerWidth < 768 ? false : { r: 4, fill: 'var(--success)', strokeWidth: 2, stroke: '#fff' }}
                   activeDot={{ r: 6, strokeWidth: 0 }}
                 />
                 <Line 
@@ -509,7 +509,7 @@ export default function Reports() {
                   dataKey="Salidas" 
                   stroke="var(--danger)" 
                   strokeWidth={3} 
-                  dot={{ r: 4, fill: 'var(--danger)', strokeWidth: 2, stroke: '#fff' }}
+                  dot={window.innerWidth < 768 ? false : { r: 4, fill: 'var(--danger)', strokeWidth: 2, stroke: '#fff' }}
                   activeDot={{ r: 6, strokeWidth: 0 }}
                 />
               </LineChart>
