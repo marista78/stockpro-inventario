@@ -392,3 +392,31 @@
     display: none;
   }
 }
+
+/* Pie chart layout adaptativo */
+.chart-content-mobile {
+  flex-direction: column;
+  align-items: center;
+}
+
+.pie-chart-wrap {
+  width: 100%;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .pie-stats-table {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+    padding: 10px;
+  }
+  .pie-stat-row {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
