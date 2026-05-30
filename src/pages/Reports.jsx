@@ -329,9 +329,11 @@ export default function Reports() {
           <h1 className="page-title">Dashboard de Reportes</h1>
           <p className="page-subtitle">Análisis avanzado de inventario y movimientos</p>
         </div>
-        <button className="btn btn-primary" onClick={handleExportFiltered}>
-          <Download size={16} /> Exportar Selección
-        </button>
+        <div>
+          <button className="btn btn-primary" onClick={handleExportFiltered}>
+            <Download size={16} /> Exportar Selección
+          </button>
+        </div>
       </div>
 
       <div className="reports-tabs mb-16">

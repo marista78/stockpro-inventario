@@ -2,6 +2,9 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* KPI Cards */
@@ -96,6 +99,11 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
+  width: 100%;
+}
+
+.charts-main-grid > * {
+  min-width: 0;
 }
 
 .full-width {
@@ -111,6 +119,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
+  width: 100%;
 }
 
 .chart-header {
@@ -187,6 +197,8 @@
 /* Table Card Mini */
 .table-card {
   padding: 24px;
+  min-width: 0;
+  width: 100%;
 }
 
 .table-wrapper.mini {
@@ -287,6 +299,11 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+  width: 100%;
+}
+
+.abc-summary-grid > * {
+  min-width: 0;
 }
 
 @media (max-width: 768px) {
