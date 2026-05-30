@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
 import {
@@ -56,7 +56,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 // Hook para detectar móvil reactivamente
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  useMemo(() => {
+  useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
