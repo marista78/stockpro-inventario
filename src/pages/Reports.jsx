@@ -336,7 +336,8 @@ export default function Reports() {
         });
       }
     }
-    return data;
+    const isMobile = window.innerWidth < 768;
+    return isMobile ? data.filter((_, i) => i % 2 === 0) : data;
   }, [filteredMovements, viewType, dateRange]);
 
   // Distribution Pie (Frequency of operations)
@@ -493,7 +494,15 @@ export default function Reports() {
             <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 200 : 300}>
               <LineChart data={trendData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fill: 'var(--text-muted)', fontSize: 10 }} 
+                  axisLine={false} 
+                  tickLine={false}
+                  angle={-35}
+                  textAnchor="end"
+                  height={45}
+                />
                 <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Line 
