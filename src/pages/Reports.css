@@ -294,3 +294,85 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── RESPONSIVE MÓVIL ── */
+@media (max-width: 768px) {
+  .charts-main-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .abc-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Pie chart: columna en móvil */
+  .chart-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Pie ocupa todo el ancho */
+  .chart-content .recharts-responsive-container {
+    width: 100% !important;
+  }
+
+  .pie-stats-table {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .pie-stat-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* KPI cards más compactas */
+  .kpi-card {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .kpi-value {
+    font-size: 18px;
+  }
+
+  /* Tabs en móvil: ancho completo */
+  .reports-tabs {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .report-tab-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  /* Chart height reducido en móvil */
+  .chart-card .recharts-wrapper {
+    height: 220px !important;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* Tabla mini scroll */
+  .table-wrapper.mini {
+    max-height: 300px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
