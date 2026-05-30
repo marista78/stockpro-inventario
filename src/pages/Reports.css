@@ -375,4 +375,20 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  /* Reducir altura de gráficos en móvil */
+  .chart-card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  /* Forzar ancho completo en recharts */
+  .recharts-responsive-container {
+    min-width: 0 !important;
+  }
+
+  /* Ocultar algunos ticks del eje X para no saturar */
+  .recharts-xAxis .recharts-cartesian-axis-tick:nth-child(even) {
+    display: none;
+  }
 }
