@@ -447,6 +447,22 @@ select.input { cursor: pointer; }
   justify-content: center;
 }
 
+.flex { display: flex; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+
+.bg-primary-glow { background: rgba(99, 102, 241, 0.15); }
+.bg-success-glow { background: rgba(16, 185, 129, 0.15); }
+.bg-warning-glow { background: rgba(245, 158, 11, 0.15); }
+.bg-danger-glow { background: rgba(239, 68, 68, 0.15); }
+
 .cursor-help { cursor: help; }
 .text-center { text-align: center; }
 .mt-12 { margin-top: 12px; }

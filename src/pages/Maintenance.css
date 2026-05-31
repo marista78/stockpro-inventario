@@ -152,3 +152,81 @@
     grid-column: span 1;
   }
 }
+
+@media (max-width: 768px) {
+  .branding-panel, .health-panel {
+    min-height: auto;
+  }
+  .panel-header {
+    padding: 16px;
+  }
+  .health-content {
+    padding: 24px 16px;
+  }
+  .tools-section {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .tool-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+  }
+  .tool-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .tool-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .branding-footer-flex {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    text-align: center;
+  }
+  .branding-footer-flex p {
+    max-width: 100% !important;
+  }
+  .branding-footer-flex button {
+    width: 100%;
+    justify-content: center;
+  }
+  .diagnostic-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px !important;
+  }
+  .diagnostic-buttons button {
+    width: 100%;
+    justify-content: center;
+  }
+  .tool-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px !important;
+  }
+  .tool-buttons button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .page-content {
+    padding: 8px;
+  }
+  .card {
+    padding: 14px;
+  }
+  .icon-selector {
+    gap: 6px !important;
+  }
+  .icon-selector button {
+    padding: 6px !important;
+  }
+}

@@ -325,7 +325,7 @@ export default function Maintenance() {
                 {/* Sección Boleta */}
                 <div>
                   <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Comprobante: Boleta (B[Serie]-[Correlativo])</div>
-                  <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="grid-2">
                     <div className="input-group mb-0" style={{ marginBottom: 0 }}>
                       <label className="input-label">Serie Boleta (3 dígitos)</label>
                       <div className="search-bar">
@@ -361,7 +361,7 @@ export default function Maintenance() {
                 {/* Sección Factura */}
                 <div>
                   <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Comprobante: Factura (F[Serie]-[Correlativo])</div>
-                  <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="grid-2">
                     <div className="input-group mb-0" style={{ marginBottom: 0 }}>
                       <label className="input-label">Serie Factura (3 dígitos)</label>
                       <div className="search-bar">
@@ -398,7 +398,7 @@ export default function Maintenance() {
 
             <div className="divider"></div>
             
-            <div className="flex justify-between items-center mt-20">
+            <div className="flex justify-between items-center mt-20 branding-footer-flex">
               <p className="text-muted" style={{ fontSize: '11px', maxWidth: '180px' }}>
                 <AlertTriangle size={10} /> Los cambios se guardan permanentemente en la nube.
               </p>
@@ -441,7 +441,7 @@ export default function Maintenance() {
                     <ul className="issues-list">
                       {scanResult.issues.map((iss, i) => <li key={i}>{iss.msg}</li>)}
                     </ul>
-                    <div className="flex gap-12 justify-center mt-20">
+                    <div className="flex gap-12 justify-center mt-20 diagnostic-buttons">
                       <button className="btn btn-secondary" onClick={runDiagnostic}>Repetir Análisis</button>
                       <button className="btn btn-success" onClick={autoRepair}>Reparar Sistema</button>
                     </div>
@@ -465,7 +465,7 @@ export default function Maintenance() {
             <div className="tool-info">
               <h3>Backup Maestro (JSON)</h3>
               <p>Descarga toda la información del sistema en un solo archivo para restauraciones futuras.</p>
-              <div className="flex gap-8 mt-12">
+              <div className="flex gap-8 mt-12 tool-buttons">
                 <button className="btn btn-primary btn-sm" onClick={handleFullBackup}><Download size={14} /> Descargar</button>
                 <button className="btn btn-outline btn-sm" onClick={() => restoreRef.current.click()}><Upload size={14} /> Restaurar</button>
                 <input 
