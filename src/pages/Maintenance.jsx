@@ -210,38 +210,32 @@ export default function Maintenance() {
           <div className="branding-content" style={{ marginTop: '20px' }}>
             <div className="input-group mb-16" style={{ marginBottom: '16px' }}>
               <label className="input-label">Nombre de la Aplicación</label>
-              <div className="search-bar">
-                <Type size={16} className="text-muted" />
-                <input 
-                  value={brandingForm.appName} 
-                  onChange={e => setBrandingForm(prev => ({ ...prev, appName: e.target.value }))}
-                  placeholder="Ej: StockPro"
-                />
-              </div>
+              <input 
+                className="input"
+                value={brandingForm.appName} 
+                onChange={e => setBrandingForm(prev => ({ ...prev, appName: e.target.value }))}
+                placeholder="Ej: StockPro"
+              />
             </div>
 
             <div className="input-group mb-16" style={{ marginBottom: '16px' }}>
               <label className="input-label">RUC de la Empresa (Boleta)</label>
-              <div className="search-bar">
-                <LucideIcons.FileText size={16} className="text-muted" />
-                <input 
-                  value={brandingForm.shopRuc || ''} 
-                  onChange={e => setBrandingForm(prev => ({ ...prev, shopRuc: e.target.value }))}
-                  placeholder="Ej: RUC: 20203040567"
-                />
-              </div>
+              <input 
+                className="input"
+                value={brandingForm.shopRuc || ''} 
+                onChange={e => setBrandingForm(prev => ({ ...prev, shopRuc: e.target.value }))}
+                placeholder="Ej: RUC: 20203040567"
+              />
             </div>
 
             <div className="input-group mb-16" style={{ marginBottom: '16px' }}>
               <label className="input-label">Dirección de la Empresa (Boleta)</label>
-              <div className="search-bar">
-                <LucideIcons.MapPin size={16} className="text-muted" />
-                <input 
-                  value={brandingForm.shopAddress || ''} 
-                  onChange={e => setBrandingForm(prev => ({ ...prev, shopAddress: e.target.value }))}
-                  placeholder="Ej: Av. Principal 123"
-                />
-              </div>
+              <input 
+                className="input"
+                value={brandingForm.shopAddress || ''} 
+                onChange={e => setBrandingForm(prev => ({ ...prev, shopAddress: e.target.value }))}
+                placeholder="Ej: Av. Principal 123"
+              />
             </div>
 
             <div className="input-group mb-16" style={{ marginBottom: '16px' }}>
@@ -328,32 +322,28 @@ export default function Maintenance() {
                   <div className="grid-2">
                     <div className="input-group mb-0" style={{ marginBottom: 0 }}>
                       <label className="input-label">Serie Boleta (3 dígitos)</label>
-                      <div className="search-bar">
-                        <LucideIcons.FileCode size={16} className="text-muted" />
-                        <input 
-                          type="text" 
-                          maxLength="3"
-                          value={brandingForm.ticketBoletaSeries !== undefined ? brandingForm.ticketBoletaSeries : '001'} 
-                          onChange={e => {
-                            const val = e.target.value.replace(/\D/g, ''); // Solo números
-                            setBrandingForm(prev => ({ ...prev, ticketBoletaSeries: val }));
-                          }}
-                          placeholder="Ej: 001"
-                        />
-                      </div>
+                      <input 
+                        className="input"
+                        type="text" 
+                        maxLength="3"
+                        value={brandingForm.ticketBoletaSeries !== undefined ? brandingForm.ticketBoletaSeries : '001'} 
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, ''); // Solo números
+                          setBrandingForm(prev => ({ ...prev, ticketBoletaSeries: val }));
+                        }}
+                        placeholder="Ej: 001"
+                      />
                     </div>
                     <div className="input-group mb-0" style={{ marginBottom: 0 }}>
                       <label className="input-label">Correlativo de Inicio</label>
-                      <div className="search-bar">
-                        <LucideIcons.Binary size={16} className="text-muted" />
-                        <input 
-                          type="number" 
-                          min="1"
-                          value={brandingForm.ticketBoletaStart !== undefined ? brandingForm.ticketBoletaStart : 1} 
-                          onChange={e => setBrandingForm(prev => ({ ...prev, ticketBoletaStart: parseInt(e.target.value) || 1 }))}
-                          placeholder="Ej: 1"
-                        />
-                      </div>
+                      <input 
+                        className="input"
+                        type="number" 
+                        min="1"
+                        value={brandingForm.ticketBoletaStart !== undefined ? brandingForm.ticketBoletaStart : 1} 
+                        onChange={e => setBrandingForm(prev => ({ ...prev, ticketBoletaStart: parseInt(e.target.value) || 1 }))}
+                        placeholder="Ej: 1"
+                      />
                     </div>
                   </div>
                 </div>
@@ -364,32 +354,28 @@ export default function Maintenance() {
                   <div className="grid-2">
                     <div className="input-group mb-0" style={{ marginBottom: 0 }}>
                       <label className="input-label">Serie Factura (3 dígitos)</label>
-                      <div className="search-bar">
-                        <LucideIcons.FileCode size={16} className="text-muted" />
-                        <input 
-                          type="text" 
-                          maxLength="3"
-                          value={brandingForm.ticketFacturaSeries !== undefined ? brandingForm.ticketFacturaSeries : '001'} 
-                          onChange={e => {
-                            const val = e.target.value.replace(/\D/g, ''); // Solo números
-                            setBrandingForm(prev => ({ ...prev, ticketFacturaSeries: val }));
-                          }}
-                          placeholder="Ej: 001"
-                        />
-                      </div>
+                      <input 
+                        className="input"
+                        type="text" 
+                        maxLength="3"
+                        value={brandingForm.ticketFacturaSeries !== undefined ? brandingForm.ticketFacturaSeries : '001'} 
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, ''); // Solo números
+                          setBrandingForm(prev => ({ ...prev, ticketFacturaSeries: val }));
+                        }}
+                        placeholder="Ej: 001"
+                      />
                     </div>
                     <div className="input-group mb-0" style={{ marginBottom: 0 }}>
                       <label className="input-label">Correlativo de Inicio</label>
-                      <div className="search-bar">
-                        <LucideIcons.Binary size={16} className="text-muted" />
-                        <input 
-                          type="number" 
-                          min="1"
-                          value={brandingForm.ticketFacturaStart !== undefined ? brandingForm.ticketFacturaStart : 1} 
-                          onChange={e => setBrandingForm(prev => ({ ...prev, ticketFacturaStart: parseInt(e.target.value) || 1 }))}
-                          placeholder="Ej: 1"
-                        />
-                      </div>
+                      <input 
+                        className="input"
+                        type="number" 
+                        min="1"
+                        value={brandingForm.ticketFacturaStart !== undefined ? brandingForm.ticketFacturaStart : 1} 
+                        onChange={e => setBrandingForm(prev => ({ ...prev, ticketFacturaStart: parseInt(e.target.value) || 1 }))}
+                        placeholder="Ej: 1"
+                      />
                     </div>
                   </div>
                 </div>
