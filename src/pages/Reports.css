@@ -150,9 +150,26 @@
 }
 
 .dot {
+  display: inline-block;
   width: 8px;
   height: 8px;
   border-radius: 50%;
+}
+
+.bg-success {
+  background-color: var(--success) !important;
+}
+
+.bg-danger {
+  background-color: var(--danger) !important;
+}
+
+.bg-warning {
+  background-color: var(--warning) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary) !important;
 }
 
 /* Tooltip Styles */
