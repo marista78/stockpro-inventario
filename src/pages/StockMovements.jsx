@@ -12,6 +12,7 @@ import {
 import { format, subDays } from 'date-fns';
 import * as XLSX from 'xlsx';
 import './StockMovements.css';
+import CustomSelect from '../components/CustomSelect';
 
 const UNIT_ABBR = {
   'Unidad': 'Und.', 'Unidades': 'Und.',
@@ -865,6 +866,13 @@ export default function StockMovements() {
   const [ticketData, setTicketData] = useState(null);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
+  
+  const filterTypeOptions = [
+    { value: '', label: 'Todos los tipos' },
+    { value: 'entrada', label: 'Entradas' },
+    { value: 'salida', label: 'Salidas' }
+  ];
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -997,11 +1005,11 @@ export default function StockMovements() {
         </div>
         <div className="filter-group">
           <Filter size={14} className="text-primary" />
-          <select className="filter-select" value={filterType} onChange={e => setFilterType(e.target.value)}>
-            <option value="">Todos los tipos</option>
-            <option value="entrada">Entradas</option>
-            <option value="salida">Salidas</option>
-          </select>
+          <CustomSelect 
+            options={filterTypeOptions}
+            value={filterType} 
+            onChange={setFilterType}
+          />
         </div>
         <div className="filter-group">
           <Calendar size={14} className="text-primary" />

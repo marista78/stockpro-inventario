@@ -1,0 +1,113 @@
+.custom-select-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  flex: 1;
+  min-width: 140px;
+}
+
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  gap: 8px;
+}
+
+.custom-select-label {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.custom-select-arrow {
+  color: var(--text-muted);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s;
+  flex-shrink: 0;
+}
+
+.custom-select-arrow.open {
+  transform: rotate(180deg);
+  color: var(--primary-light);
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 200px;
+  background: hsla(222, 35%, 11%, 0.95); /* Fusión con el fondo de tarjetas y inputs */
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  overflow: hidden;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Alinear a la derecha en móviles si está cerca del borde */
+@media (max-width: 768px) {
+  .custom-select-dropdown {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+.custom-select-option {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-select-option:hover {
+  background: var(--bg-card-hover);
+  color: var(--text);
+  transform: translateX(2px);
+}
+
+.custom-select-option.selected {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+/* Animación de entrada suave con escala y opacidad */
+@keyframes slideSelect {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slide-select {
+  animation: slideSelect 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: top left;
+}

@@ -10,6 +10,7 @@ import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fn
 import { es } from 'date-fns/locale/es';
 import * as XLSX from 'xlsx';
 import './Reports.css';
+import CustomSelect from '../components/CustomSelect';
 
 const CHART_COLORS = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -86,6 +87,44 @@ export default function Reports() {
   const [viewType, setViewType] = useState('days');
   const [filterCat, setFilterCat] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+
+  const viewTypeOptions = [
+    { value: 'days', label: 'Ver por Días' },
+    { value: 'months', label: 'Ver por Meses' },
+    { value: 'years', label: 'Ver por Años' }
+  ];
+
+  const dateRangeOptions = useMemo(() => {
+    if (viewType === 'days') {
+      return [
+        { value: 'current_month', label: 'Mes Actual' },
+        { value: '7', label: 'Últimos 7 días' },
+        { value: '30', label: 'Últimos 30 días' },
+        { value: '90', label: 'Últimos 90 días' },
+        { value: 'all', label: 'Todo el historial' }
+      ];
+    }
+    return [
+      { value: 'all', label: 'Todo el historial' }
+    ];
+  }, [viewType]);
+
+  const categoryOptions = useMemo(() => [
+    { value: '', label: 'Todas las categorías' },
+    ...categories.map(c => ({ value: c.id, label: c.name }))
+  ], [categories]);
+
+  const statusOptions = [
+    { value: '', label: 'Cualquier estado' },
+    { value: 'low', label: 'Bajo Stock (Críticos)' },
+    { value: 'out', label: 'Agotados (Sin Stock)' }
+  ];
+
+  useEffect(() => {
+    if (viewType !== 'days' && dateRange !== 'all') {
+      setDateRange('all');
+    }
+  }, [viewType, dateRange]);
 
   const productStats = useMemo(() => {
     const stats = {};
@@ -358,40 +397,35 @@ export default function Reports() {
           <div className="card filter-bar mb-24">
             <div className="filter-group">
               <TrendingUp size={16} className="text-primary" />
-              <select value={viewType} onChange={e => setViewType(e.target.value)} className="filter-select">
-                <option value="days">Ver por Días</option>
-                <option value="months">Ver por Meses</option>
-                <option value="years">Ver por Años</option>
-              </select>
+              <CustomSelect 
+                options={viewTypeOptions}
+                value={viewType} 
+                onChange={setViewType}
+              />
             </div>
             <div className="filter-group">
               <Calendar size={16} className="text-primary" />
-              <select value={dateRange} onChange={e => setDateRange(e.target.value)} className="filter-select">
-                {viewType === 'days' ? (
-                  <>
-                    <option value="current_month">Mes Actual</option>
-                    <option value="7">Últimos 7 días</option>
-                    <option value="30">Últimos 30 días</option>
-                    <option value="90">Últimos 90 días</option>
-                  </>
-                ) : null}
-                <option value="all">Todo el historial</option>
-              </select>
+              <CustomSelect 
+                options={dateRangeOptions}
+                value={dateRange} 
+                onChange={setDateRange}
+              />
             </div>
             <div className="filter-group">
               <Filter size={16} className="text-primary" />
-              <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="filter-select">
-                <option value="">Todas las categorías</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              <CustomSelect 
+                options={categoryOptions}
+                value={filterCat} 
+                onChange={setFilterCat}
+              />
             </div>
             <div className="filter-group">
               <AlertCircle size={16} className="text-primary" />
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="filter-select">
-                <option value="">Cualquier estado</option>
-                <option value="low">Bajo Stock (Críticos)</option>
-                <option value="out">Agotados (Sin Stock)</option>
-              </select>
+              <CustomSelect 
+                options={statusOptions}
+                value={filterStatus} 
+                onChange={setFilterStatus}
+              />
             </div>
           </div>
 

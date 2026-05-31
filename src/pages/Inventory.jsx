@@ -8,6 +8,7 @@ import { QRCode } from 'react-qr-code';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 import './Inventory.css';
+import CustomSelect from '../components/CustomSelect';
 
 const excelDateToJS = (serial) => {
   if (!serial || isNaN(serial) || typeof serial === 'string') return serial;
@@ -379,6 +380,18 @@ export default function Inventory() {
   const canManage = user?.role === 'admin' || user?.permissions?.inventory;
   const [filterCat, setFilterCat] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+
+  const categoryOptions = useMemo(() => [
+    { value: '', label: 'Todas las Categorías' },
+    ...categories.map(c => ({ value: c.id, label: c.name }))
+  ], [categories]);
+
+  const statusOptions = [
+    { value: '', label: 'Todos los Estados' },
+    { value: 'low', label: 'Stock Bajo' },
+    { value: 'reorder', label: 'Punto Reorden' },
+    { value: 'ok', label: 'Stock OK' }
+  ];
   const [editProduct, setEditProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [qrProduct, setQrProduct] = useState(null);
@@ -596,28 +609,20 @@ export default function Inventory() {
         
         <div className="filter-group">
           <Filter size={14} className="text-primary" />
-          <select 
-            className="filter-select"
+          <CustomSelect 
+            options={categoryOptions}
             value={filterCat} 
-            onChange={e => setFilterCat(e.target.value)}
-          >
-            <option value="">Todas las Categorías</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+            onChange={setFilterCat}
+          />
         </div>
 
         <div className="filter-group">
           <AlertTriangle size={14} className="text-primary" />
-          <select 
-            className="filter-select"
+          <CustomSelect 
+            options={statusOptions}
             value={filterStatus} 
-            onChange={e => setFilterStatus(e.target.value)}
-          >
-            <option value="">Todos los Estados</option>
-            <option value="low">Stock Bajo</option>
-            <option value="reorder">Punto Reorden</option>
-            <option value="ok">Stock OK</option>
-          </select>
+            onChange={setFilterStatus}
+          />
         </div>
       </div>
 
