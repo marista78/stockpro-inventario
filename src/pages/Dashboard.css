@@ -8,8 +8,22 @@
 .stat-trend.up { background: var(--success-light); color: var(--success); }
 .stat-trend.down { background: var(--danger-light); color: var(--danger); }
 
-.dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-top: 16px; }
-.dashboard-chart-card {}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.dashboard-grid > * {
+  min-width: 0;
+}
+
+.dashboard-chart-card {
+  min-width: 0;
+  width: 100%;
+}
 
 .section-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; margin-bottom: 16px; }
 
@@ -43,11 +57,6 @@
   .card .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* Chart más compacto */
-  .dashboard-chart-card .recharts-responsive-container {
-    height: 220px !important;
   }
 
   /* Alertas en columna */

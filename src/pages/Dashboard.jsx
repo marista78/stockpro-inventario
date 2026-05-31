@@ -1,9 +1,21 @@
+import { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { Package, DollarSign, AlertTriangle, TrendingUp, ArrowUpRight, ArrowDownRight, Calendar } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import './Dashboard.css';
+
+// Hook para detectar móvil reactivamente
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+}
 
 function StatCard({ icon: Icon, label, value, sub, color, trend }) {
   return (
@@ -44,6 +56,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function Dashboard() {
   const { products, movements, categories, lowStockProducts, reorderProducts, totalValue, loading } = useInventory();
+  const isMobile = useIsMobile();
 
   if (loading) {
     return (
@@ -102,7 +115,7 @@ export default function Dashboard() {
         {/* Chart */}
         <div className="card dashboard-chart-card">
           <h2 className="section-title">Actividad de los últimos 7 días</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="day" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
