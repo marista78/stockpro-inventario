@@ -630,19 +630,19 @@ export default function Inventory() {
         <table className="table">
           <thead>
             <tr>
-              <th className="col-num">#</th>
-              <th>SKU</th>
+              <th className="col-num text-center" style={{ width: '50px' }}>#</th>
+              <th className="text-center" style={{ width: '110px' }}>SKU</th>
               <th>Nombre del Producto</th>
-              <th>Marca</th>
-              <th>Unidad</th>
-              <th>Categoría</th>
-              <th>Stock Total</th>
-              <th>Mínimo</th>
-              <th>P.U</th>
-              <th>Lotes</th>
-              <th>Proveedor</th>
-              <th>Estado</th>
-              <th className="text-right">Acciones</th>
+              <th className="text-center">Marca</th>
+              <th className="text-center">Unidad</th>
+              <th className="text-center">Categoría</th>
+              <th className="text-center">Stock Total</th>
+              <th className="text-center">Mínimo</th>
+              <th className="text-center">P.U</th>
+              <th className="text-center">Lotes</th>
+              <th className="text-center">Proveedor</th>
+              <th className="text-center">Estado</th>
+              <th className="text-center" style={{ width: '90px' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -659,40 +659,40 @@ export default function Inventory() {
                   onClick={() => setSelectedGroupId(g.id)}
                   onDoubleClick={() => setViewProductGroup(g)}
                 >
-                  <td className="col-num">{index + 1}</td>
-                  <td className="col-sku"><code className="sku">{p.sku}</code></td>
+                  <td className="col-num text-center">{index + 1}</td>
+                  <td className="col-sku text-center text-nowrap"><code className="sku">{p.sku}</code></td>
                   <td><span className="fw-600">{p.name}</span></td>
-                  <td className="text-muted">{p.brand || '—'}</td>
-                  <td className="text-muted">{abreviar(p.unit)}</td>
-                  <td>
+                  <td className="text-muted text-center">{p.brand || '—'}</td>
+                  <td className="text-muted text-center">{abreviar(p.unit)}</td>
+                  <td className="text-center">
                     {cat ? (
-                      <span className="cat-badge" style={{ background: cat.color + '22', color: cat.color, border: `1px solid ${cat.color}44` }}>
+                      <span className="cat-badge" style={{ background: cat.color + '22', color: cat.color, border: `1px solid ${cat.color}44`, display: 'inline-flex', justifyContent: 'center' }}>
                         <span className="color-dot" style={{ background: cat.color }} /> {cat.name}
                       </span>
                     ) : <span className="text-muted">—</span>}
                   </td>
-                  <td className={`fw-700 ${(g.totalStock || 0) < (p.minStock || 0) ? 'text-warning' : ''}`}>
+                  <td className={`fw-700 text-center ${(g.totalStock || 0) < (p.minStock || 0) ? 'text-warning' : ''}`}>
                     {g.totalStock || 0}
                   </td>
-                  <td className="text-muted">{p.minStock || 0}</td>
-                  <td className="fw-600 text-nowrap">S/ {(p.price || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
-                  <td>
+                  <td className="text-muted text-center">{p.minStock || 0}</td>
+                  <td className="fw-600 text-nowrap text-center">S/ {(p.price || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
+                  <td className="text-center">
                     {hasMultipleBatches ? (
-                      <span className="batch-indicator">
+                      <span className="batch-indicator" style={{ display: 'inline-flex', justifyContent: 'center' }}>
                         <Layers size={12} /> {g.items.length} Lotes
                       </span>
                     ) : (
                       <span className="text-muted" style={{ fontSize: '12px' }}>{p.batch || '—'}</span>
                     )}
                   </td>
-                  <td className="text-muted" style={{ fontSize: '12px' }}>{p.provider || '—'}</td>
-                  <td>
+                  <td className="text-muted text-center" style={{ fontSize: '12px' }}>{p.provider || '—'}</td>
+                  <td className="text-center">
                     {(g.totalStock || 0) === 0 ? <span className="badge badge-danger">AGOTADO</span> : 
                      (g.totalStock || 0) < (p.minStock || 0) ? <span className="badge badge-danger">BAJO</span> : 
                      (g.totalStock || 0) <= (p.minStock || 0) * 1.5 ? <span className="badge badge-warning">REORDEN</span> :
                      <span className="badge badge-success">OK</span>}
                   </td>
-                  <td className="text-right">
+                  <td className="text-center">
                     <button 
                       className="btn btn-ghost btn-icon" 
                       onClick={(e) => { e.stopPropagation(); setQrProduct(p); }}
