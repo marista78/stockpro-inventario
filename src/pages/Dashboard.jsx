@@ -114,7 +114,13 @@ export default function Dashboard() {
       <div className="dashboard-grid">
         {/* Chart */}
         <div className="card dashboard-chart-card">
-          <h2 className="section-title">Actividad de los últimos 7 días</h2>
+          <div className="chart-header">
+            <h2 className="chart-title">Actividad de los últimos 7 días</h2>
+            <div className="chart-legend">
+              <span className="legend-item"><span className="dot bg-primary"></span> Entradas</span>
+              <span className="legend-item"><span className="dot bg-accent"></span> Salidas</span>
+            </div>
+          </div>
           <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
