@@ -589,7 +589,7 @@ export default function Inventory() {
           <h1 className="page-title">Inventario Consolidado</h1>
           <p className="page-subtitle">{groupedProducts.length} productos agrupados ({products.length} lotes totales)</p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="page-header-actions">
           <button className="btn btn-secondary" onClick={exportToExcel}><Download size={16} /> Exportar</button>
           {canManage && (
             <>

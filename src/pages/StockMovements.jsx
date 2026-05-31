@@ -966,7 +966,7 @@ export default function StockMovements() {
           <h1 className="page-title">Movimientos de Stock</h1>
           <p className="page-subtitle">{movements.length} operaciones registradas con trazabilidad avanzada</p>
         </div>
-        <div className="flex" style={{ gap: '80px', alignItems: 'center' }}>
+        <div className="page-header-actions">
           <button className="btn btn-secondary" onClick={() => {
             const rows = sortedMovements.map(m => {
               const product = products.find(p => p.id === m.productId || p.name === m.productName);
@@ -991,7 +991,7 @@ export default function StockMovements() {
             <Download size={16} /> Exportar Excel
           </button>
           {canManage && (
-            <button className="btn btn-primary" style={{ marginLeft: '32px' }} onClick={() => setShowModal(true)}>
+            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
               <Plus size={16} /> Nuevo Movimiento
             </button>
           )}
