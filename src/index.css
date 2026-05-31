@@ -439,6 +439,7 @@ select.input { cursor: pointer; }
 .text-danger { color: var(--danger); }
 .text-muted { color: var(--text-muted); }
 .text-subtle { color: var(--text-subtle); }
+.text-nowrap { white-space: nowrap; }
 
 .fw-400 { font-weight: 400; }
 .fw-500 { font-weight: 500; }

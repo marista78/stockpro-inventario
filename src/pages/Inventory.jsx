@@ -638,7 +638,7 @@ export default function Inventory() {
               <th>Categoría</th>
               <th>Stock Total</th>
               <th>Mínimo</th>
-              <th>Precio Prom.</th>
+              <th>P.U</th>
               <th>Lotes</th>
               <th>Proveedor</th>
               <th>Estado</th>
@@ -675,7 +675,7 @@ export default function Inventory() {
                     {g.totalStock || 0}
                   </td>
                   <td className="text-muted">{p.minStock || 0}</td>
-                  <td className="fw-600">S/ {(p.price || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
+                  <td className="fw-600 text-nowrap">S/ {(p.price || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
                   <td>
                     {hasMultipleBatches ? (
                       <span className="batch-indicator">
