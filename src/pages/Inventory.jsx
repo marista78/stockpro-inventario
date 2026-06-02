@@ -466,22 +466,28 @@ export default function Inventory() {
        });
 
        const list = Object.values(groups);
-       return list.filter(g => {
-         const p = g.main;
-         if (!p) return false;
-         const name = String(p.name || '').toLowerCase();
-         const sku = String(p.sku || '').toLowerCase();
-         const s = search.toLowerCase();
-         const matchSearch = name.includes(s) || sku.includes(s);
-         const matchCat = !filterCat || String(p.categoryId) === String(filterCat);
-         const matchStatus = !filterStatus || (
-           filterStatus === 'low' ? (g.totalStock || 0) < (p.minStock || 0) : 
-           filterStatus === 'reorder' ? (g.totalStock || 0) >= (p.minStock || 0) && (g.totalStock || 0) <= (p.minStock || 0) * 1.5 :
-           filterStatus === 'ok' ? (g.totalStock || 0) > (p.minStock || 0) * 1.5 :
-           true
-         );
-         return matchSearch && matchCat && matchStatus;
-       });
+       const filtered = list.filter(g => {
+          const p = g.main;
+          if (!p) return false;
+          const name = String(p.name || '').toLowerCase();
+          const sku = String(p.sku || '').toLowerCase();
+          const s = search.toLowerCase();
+          const matchSearch = name.includes(s) || sku.includes(s);
+          const matchCat = !filterCat || String(p.categoryId) === String(filterCat);
+          const matchStatus = !filterStatus || (
+            filterStatus === 'low' ? (g.totalStock || 0) < (p.minStock || 0) : 
+            filterStatus === 'reorder' ? (g.totalStock || 0) >= (p.minStock || 0) && (g.totalStock || 0) <= (p.minStock || 0) * 1.5 :
+            filterStatus === 'ok' ? (g.totalStock || 0) > (p.minStock || 0) * 1.5 :
+            true
+          );
+          return matchSearch && matchCat && matchStatus;
+        });
+
+        return filtered.sort((a, b) => {
+          const nameA = String(a.main?.name || '').toLowerCase();
+          const nameB = String(b.main?.name || '').toLowerCase();
+          return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
+        });
      } catch (err) {
        console.error("Error grouping products:", err);
        return []; // Fallback seguro
