@@ -154,30 +154,6 @@ function ProductModal({ product, categories, onSave, onClose, calculateSuggested
                 </div>
               </div>
   
-              <div className="divider"><span>Información de Lote</span></div>
-  
-              <div className="grid-2">
-                <div className="input-group">
-                  <label className="input-label">Número de Lote / Batch</label>
-                  <input className="input" value={form.batch} onChange={e => set('batch', e.target.value)} placeholder="Ej: LT-2024-001" />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">Proveedor</label>
-                  <input className="input" value={form.provider} onChange={e => set('provider', e.target.value)} placeholder="Nombre del proveedor" />
-                </div>
-              </div>
-  
-              <div className="grid-2">
-                <div className="input-group">
-                  <label className="input-label">Fecha de Ingreso</label>
-                  <input className="input" type="date" value={form.entryDate} onChange={e => set('entryDate', e.target.value)} />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">Fecha de Vencimiento</label>
-                  <input className="input" type="date" value={form.expiryDate} onChange={e => set('expiryDate', e.target.value)} />
-                </div>
-              </div>
-  
               <div className="input-group">
                 <label className="input-label">Imagen del Producto</label>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
