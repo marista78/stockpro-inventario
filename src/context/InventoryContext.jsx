@@ -636,7 +636,8 @@ export function InventoryProvider({ children }) {
   // Stats & Alerts
   const lowStockProducts = useMemo(() => {
     const groups = {};
-    products.forEach(p => {
+    const activeProducts = Array.isArray(products) ? products.filter(p => (Number(p.stock) || 0) > 0) : [];
+    activeProducts.forEach(p => {
       const key = p.name.trim().toLowerCase();
       if (!groups[key]) groups[key] = { ...p, totalStock: 0 };
       groups[key].totalStock += Number(p.stock || 0);
@@ -646,7 +647,8 @@ export function InventoryProvider({ children }) {
 
   const reorderProducts = useMemo(() => {
     const groups = {};
-    products.forEach(p => {
+    const activeProducts = Array.isArray(products) ? products.filter(p => (Number(p.stock) || 0) > 0) : [];
+    activeProducts.forEach(p => {
       const key = p.name.trim().toLowerCase();
       if (!groups[key]) groups[key] = { ...p, totalStock: 0 };
       groups[key].totalStock += Number(p.stock || 0);
