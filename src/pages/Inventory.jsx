@@ -445,7 +445,7 @@ export default function Inventory() {
    const groupedProducts = useMemo(() => {
      try {
        const groups = {};
-       const prodsArray = Array.isArray(products) ? products : [];
+       const prodsArray = Array.isArray(products) ? products.filter(p => (Number(p.stock) || 0) > 0) : [];
        
        prodsArray.forEach(p => {
          if (!p) return;
@@ -536,9 +536,10 @@ export default function Inventory() {
   };
 
   const exportToExcel = () => {
-    if (!products.length) return toast.error('No hay productos para exportar');
+    const activeProducts = products.filter(p => (Number(p.stock) || 0) > 0);
+    if (!activeProducts.length) return toast.error('No hay productos para exportar');
     const headers = ['SKU', 'Nombre', 'Marca', 'Unidad', 'Categoria', 'Stock', 'Stock Minimo', 'Precio Unitario', 'Lote', 'Proveedor', 'Fecha Ingreso', 'Fecha Vencimiento'];
-    const rows = products.map(p => {
+    const rows = activeProducts.map(p => {
       const cat = getCategoryById(p.categoryId)?.name || 'Sin categoria';
       return [
         p.sku, p.name, p.brand || '', p.unit || '', cat, p.stock, p.minStock || 0, p.price, p.batch || '', p.provider || '', p.entryDate || '', p.expiryDate || ''
@@ -624,7 +625,7 @@ export default function Inventory() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Inventario Consolidado</h1>
-          <p className="page-subtitle">{groupedProducts.length} productos agrupados ({products.length} lotes totales)</p>
+          <p className="page-subtitle">{groupedProducts.length} productos agrupados ({products.filter(p => (Number(p.stock) || 0) > 0).length} lotes totales)</p>
         </div>
         <div className="page-header-actions">
           <button className="btn btn-secondary" onClick={exportToExcel}><Download size={16} /> Exportar</button>
