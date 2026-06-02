@@ -280,17 +280,17 @@ export default function Suppliers() {
                 <h4 className="preview-label">Productos Suministrados:</h4>
                 <div className="preview-tags">
                   {products
-                    .filter(p => p.provider?.trim().toLowerCase() === s.name.trim().toLowerCase())
+                    .filter(p => p.provider?.trim().toLowerCase() === s.name.trim().toLowerCase() && p.stock > 0)
                     .reduce((acc, p) => acc.find(x => x.name === p.name) ? acc : [...acc, p], []) // Únicos por nombre
                     .slice(0, 3)
                     .map((p, idx) => (
                       <span key={idx} className="preview-tag">{p.name}</span>
                     ))
                   }
-                  {products.filter(p => p.provider?.trim().toLowerCase() === s.name.trim().toLowerCase()).length > 3 && (
-                    <span className="preview-tag more">+{products.filter(p => p.provider?.trim().toLowerCase() === s.name.trim().toLowerCase()).length - 3} más</span>
+                  {products.filter(p => p.provider?.trim().toLowerCase() === s.name.trim().toLowerCase() && p.stock > 0).length > 3 && (
+                    <span className="preview-tag more">+{products.filter(p => p.provider?.trim().toLowerCase() === s.name.trim().toLowerCase() && p.stock > 0).length - 3} más</span>
                   )}
-                  {products.filter(p => p.provider?.trim().toLowerCase() === s.name.trim().toLowerCase()).length === 0 && (
+                  {products.filter(p => p.provider?.trim().toLowerCase() === s.name.trim().toLowerCase() && p.stock > 0).length === 0 && (
                     <span className="text-muted" style={{ fontSize: '11px' }}>Sin productos vinculados</span>
                   )}
                 </div>

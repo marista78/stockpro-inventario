@@ -215,6 +215,9 @@ export function InventoryProvider({ children }) {
   }, []);
 
   const updateProduct = useCallback(async (id, updates) => {
+    const existing = products.find(p => p.id === id);
+    const oldName = existing?.name;
+
     const dbUpdates = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.sku !== undefined) dbUpdates.sku = updates.sku;
@@ -231,26 +234,73 @@ export function InventoryProvider({ children }) {
     if (updates.entryDate !== undefined) dbUpdates.entry_date = updates.entryDate;
     if (updates.provider !== undefined) dbUpdates.provider = updates.provider;
 
-    const { data, error } = await supabase
+    // Campos comunes que se comparten entre todos los lotes del mismo producto
+    const sharedUpdates = {};
+    if (dbUpdates.name !== undefined) sharedUpdates.name = dbUpdates.name;
+    if (dbUpdates.sku !== undefined) sharedUpdates.sku = dbUpdates.sku;
+    if (dbUpdates.category_id !== undefined) sharedUpdates.category_id = dbUpdates.category_id;
+    if (dbUpdates.brand !== undefined) sharedUpdates.brand = dbUpdates.brand;
+    if (dbUpdates.unit !== undefined) sharedUpdates.unit = dbUpdates.unit;
+    if (dbUpdates.min_stock !== undefined) sharedUpdates.min_stock = dbUpdates.min_stock;
+    if (dbUpdates.image_url !== undefined) sharedUpdates.image_url = dbUpdates.image_url;
+    if (dbUpdates.price !== undefined) sharedUpdates.price = dbUpdates.price;
+
+    let updatedProducts = [];
+
+    // Si hay cambios compartidos y conocemos el nombre original, actualizamos todos los lotes relacionados en Supabase
+    if (Object.keys(sharedUpdates).length > 0 && oldName) {
+      const { data: multipleData, error: multError } = await supabase
+        .from('products')
+        .update(sharedUpdates)
+        .eq('name', oldName)
+        .select();
+
+      if (multError) throw multError;
+      updatedProducts = multipleData || [];
+    }
+
+    // Siempre actualizamos el lote específico con todos sus campos específicos (como stock, batch, provider, etc.)
+    const { data: specificData, error: specError } = await supabase
       .from('products')
       .update(dbUpdates)
       .eq('id', id)
       .select()
       .single();
     
-    if (error) throw error;
+    if (specError) throw specError;
+
     const mapped = { 
-      ...data, 
-      categoryId: data.category_id, 
-      minStock: data.min_stock, 
-      expiryDate: data.expiry_date, 
-      entryDate: data.entry_date, 
-      image: data.image_url,
-      imageUrl: data.image_url 
+      ...specificData, 
+      categoryId: specificData.category_id, 
+      minStock: specificData.min_stock, 
+      expiryDate: specificData.expiry_date, 
+      entryDate: specificData.entry_date, 
+      image: specificData.image_url,
+      imageUrl: specificData.image_url 
     };
-    setProducts(prev => prev.map(p => p.id === id ? mapped : p));
+
+    setProducts(prev => {
+      let nextProducts = prev;
+      if (updatedProducts.length > 0) {
+        const mappedUpdates = updatedProducts.map(u => ({
+          ...u,
+          categoryId: u.category_id,
+          minStock: u.min_stock,
+          expiryDate: u.expiry_date,
+          entryDate: u.entry_date,
+          image: u.image_url,
+          imageUrl: u.image_url
+        }));
+        nextProducts = prev.map(p => {
+          const match = mappedUpdates.find(u => u.id === p.id);
+          return match ? match : p;
+        });
+      }
+      return nextProducts.map(p => p.id === id ? mapped : p);
+    });
+
     return mapped;
-  }, []);
+  }, [products]);
 
   const deleteProduct = useCallback(async (id) => {
     const { error } = await supabase

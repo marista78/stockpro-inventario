@@ -340,16 +340,47 @@ function ProductDetailModal({ productGroup, categories, onClose, getCategoryById
                   <th>Nº Lote</th>
                   <th>Stock del Lote</th>
                   <th>Proveedor</th>
+                  {canManage && <th className="text-center" style={{ width: '80px' }}>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
-                {productGroup.items.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>{item.batch || 'S/L'}</td>
-                    <td>{item.stock} {abreviar(item.unit)}</td>
-                    <td>{item.provider || '---'}</td>
-                  </tr>
-                ))}
+                {productGroup.items.map((item, idx) => {
+                  const isZero = (item.stock || 0) === 0;
+                  return (
+                    <tr key={idx} style={isZero ? { opacity: 0.6, background: 'rgba(255,0,0,0.02)' } : {}}>
+                      <td>
+                        {item.batch || 'S/L'}
+                        {isZero && <span className="badge badge-danger ml-8" style={{ fontSize: '9px', padding: '2px 6px', verticalAlign: 'middle', marginLeft: '6px', background: 'var(--danger)', color: '#fff', borderRadius: '4px' }}>AGOTADO</span>}
+                      </td>
+                      <td style={isZero ? { textDecoration: 'line-through' } : {}}>{item.stock} {abreviar(item.unit)}</td>
+                      <td>{item.provider || '---'}</td>
+                      {canManage && (
+                        <td className="text-center">
+                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                            <button 
+                              type="button"
+                              className="btn btn-ghost btn-icon btn-sm" 
+                              style={{ color: 'var(--primary)', padding: '2px', background: 'none', border: 'none', cursor: 'pointer' }}
+                              onClick={() => onEdit(item)}
+                              title="Editar este lote"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button 
+                              type="button"
+                              className="btn btn-ghost btn-icon btn-sm" 
+                              style={{ color: 'var(--danger)', padding: '2px', background: 'none', border: 'none', cursor: 'pointer' }}
+                              onClick={() => onDelete(item)}
+                              title="Eliminar este lote"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -423,6 +454,12 @@ export default function Inventory() {
          const key = name.toLowerCase() || 'default';
          if (!groups[key]) {
            groups[key] = { id: key, main: p, totalStock: 0, items: [] };
+         } else {
+           // Si el actual main tiene stock 0 y este lote tiene stock > 0,
+           // hacemos de este lote el main para mostrar información activa (proveedor, fechas, lote)
+           if ((Number(groups[key].main.stock) || 0) === 0 && (Number(p.stock) || 0) > 0) {
+             groups[key].main = p;
+           }
          }
          groups[key].totalStock += (Number(p.stock) || 0);
          groups[key].items.push(p);
